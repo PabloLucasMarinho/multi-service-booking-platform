@@ -8,15 +8,17 @@
       <span class="success-message">{{ session('status') }}</span>
     @endif
 
-    <img src="{{ asset('assets/images/logo.png') }}" alt="Logo da barbearia" class="auth-logo">
-
     <form action="{{ route('login') }}" method="POST" class="form-auth">
       @csrf
+
+      <h1>Login</h1>
+      <p>Boas vindas de volta!</p>
+
       <div class="input-wrapper">
         <label for="email">E-mail<span class="required">*</span></label>
-        <input type="email" name="email" id="email" autocomplete="email" required />
+        <input type="email" name="email" id="email" autocomplete="email" required/>
         @error('email')
-          <small class="error-message">{{ $message }}</small>
+        <small class="error-message">{{ $message }}</small>
         @enderror
       </div>
 
@@ -24,13 +26,13 @@
         <label for="password">Senha<span class="required">*</span></label>
         <div class="password">
           <input type="password" name="password" id="password" autocomplete="current-password" class="input-password"
-            required />
+                 required/>
           <span class="material-symbols-rounded show">
             visibility
           </span>
         </div>
         @error('password')
-          <small class="error-message">{{ $message }}</small>
+        <small class="error-message">{{ $message }}</small>
         @enderror
 
         <div class="remember-me-wrapper">

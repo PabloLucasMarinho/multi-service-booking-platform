@@ -27,7 +27,12 @@ class Promotion extends Model
 
   public function services(): BelongsToMany
   {
-    return $this->belongsToMany(Service::class, 'promotion_service', 'promotion_uuid', 'service_uuid');
+    return $this->belongsToMany(
+      Service::class,
+      'promotion_service',
+      'promotion_uuid',
+      'service_uuid'
+    );
   }
 
   protected $casts = [

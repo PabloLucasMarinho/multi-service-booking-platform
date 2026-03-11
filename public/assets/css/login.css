@@ -7,16 +7,19 @@
   align-items: center;
 }
 
-img.auth-logo {
-  width: 100%;
-  max-width: 20rem;
-  height: auto;
-  margin-bottom: 1rem;
-}
+/*img.auth-logo {*/
+/*  width: 100%;*/
+/*  max-width: 20rem;*/
+/*  height: auto;*/
+/*  margin-bottom: 1rem;*/
+/*}*/
 
 .form-auth {
-  width: 100%;
-  max-width: 15rem;
+  width: clamp(300px, 20rem, 50%);
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-l);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
   row-gap: 1rem;
