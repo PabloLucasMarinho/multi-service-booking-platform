@@ -21,7 +21,7 @@ class UserService
         'role_uuid' => $roleUuid,
       ]);
 
-      $user->details()->create([
+      $user->details->create([
         'user_uuid' => $user['uuid'],
         'document' => $data['document'],
         'date_of_birth' => $data['date_of_birth'],
@@ -44,15 +44,16 @@ class UserService
   public function updateEmployee(array $data, User $user): void
   {
     DB::transaction(function () use ($data, $user) {
-      $role = Role::where('name', $data['role'])->firstOrFail();
+      $roleUuid = Role::where('name', $data['role'])->value('uuid');
+      $details = $user->details;
 
       $user->update([
         'name' => $data['name'],
         'email' => $data['email'],
-        'role_uuid' => $role->uuid,
+        'role_uuid' => $roleUuid,
       ]);
 
-      $user->details()->update([
+      $details->update([
         'document' => $data['document'],
         'date_of_birth' => $data['date_of_birth'],
         'phone' => $data['phone'],

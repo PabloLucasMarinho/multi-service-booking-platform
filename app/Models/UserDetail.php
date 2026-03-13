@@ -28,7 +28,6 @@ class UserDetail extends Model
     'zip_code',
     'neighborhood',
     'city',
-    'phone',
     'salary',
     'admission_date',
   ];
