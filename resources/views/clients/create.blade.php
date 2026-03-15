@@ -25,6 +25,7 @@
         />
 
         <x-adminlte-input
+          id="document"
           name="document"
           label="CPF"
           placeholder="Digite o CPF do cliente"
@@ -32,6 +33,7 @@
         />
 
         <x-adminlte-input
+          id="date_of_birth"
           name="date_of_birth"
           label="Data de Nascimento"
           placeholder="Digite o data de nascimento do cliente"
@@ -67,6 +69,18 @@
     $(document).ready(function () {
 
       $('#phone').inputmask('(99) 99999-9999');
+
+    });
+
+    $(document).ready(function () {
+
+      $('#document').inputmask('999.999.999-99');
+
+    });
+
+    $(document).ready(function () {
+
+      $('#date_of_birth').inputmask('99/99/9999');
 
     });
 

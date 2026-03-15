@@ -354,6 +354,16 @@ return [
   */
 
   'plugins' => [
+    'InputMask' => [
+      'active' => true,
+      'files' => [
+        [
+          'type' => 'js',
+          'asset' => false,
+          'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js',
+        ]
+      ]
+    ],
     'Datatables' => [
       'active' => false,
       'files' => [

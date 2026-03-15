@@ -17,7 +17,7 @@ class EmployeeSeeder extends Seeder
 
     $user = User::create([
       'name' => 'Funcionário',
-      'email' => 'employee@barber.com',
+      'email' => 'employee@email.com',
       'email_verified_at' => now(),
       'password' => bcrypt('Aa123456'),
       'role_uuid' => $employeeRoleUuid,

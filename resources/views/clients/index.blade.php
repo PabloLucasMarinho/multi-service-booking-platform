@@ -41,9 +41,10 @@
 
         <thead>
         <tr>
-          <th>ID</th>
           <th>Nome</th>
-          <th>Email</th>
+          <th>Data de Nascimento</th>
+          <th>CPF</th>
+          <th>Telefone</th>
         </tr>
         </thead>
 
@@ -52,15 +53,16 @@
         @forelse ($clients as $client)
 
           <tr>
-            <td>{{ $client->id }}</td>
             <td>{{ $client->name }}</td>
-            <td>{{ $client->email }}</td>
+            <td>{{ $client->date_of_birth_formatted }}</td>
+            <td>{{ $client->document }}</td>
+            <td>{{ $client->phone }}</td>
           </tr>
 
         @empty
 
           <tr>
-            <td colspan="3" class="text-center">Nenhum cliente encontrado</td>
+            <td colspan="12" class="text-center">Nenhum cliente encontrado</td>
           </tr>
 
         @endforelse
