@@ -19,7 +19,8 @@ return new class extends Migration {
       $table->char('initials', 2)->nullable();
       $table->date('date_of_birth');
       $table->string('document')->unique();
-      $table->string('phone', 20);
+      $table->string('email')->nullable()->unique();
+      $table->string('phone', 20)->nullable();
       $table->string('color', 7)->nullable();
       $table->timestamps();
       $table->softDeletes();

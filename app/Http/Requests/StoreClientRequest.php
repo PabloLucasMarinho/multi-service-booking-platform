@@ -5,12 +5,39 @@ namespace App\Http\Requests;
 use App\Rules\Cpf;
 use App\Rules\DateOfBirth;
 use App\Rules\Phone;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
-class StoreClientRequest extends FormRequest
+class StoreClientRequest extends BaseFormRequest
 {
+  protected array $sanitize = [
+    'name' => 'string',
+    'document' => 'digits',
+    'phone' => 'digits',
+    'email' => 'lowercase',
+  ];
+
+  protected function prepareForValidation(): void
+  {
+    parent::prepareForValidation();
+
+    $dateOfBirth = $this->input('date_of_birth');
+
+    if (is_string($dateOfBirth)) {
+      try {
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $dateOfBirth)) {
+          $this->merge(['date_of_birth' => Carbon::createFromFormat(
+            'd/m/Y',
+            $dateOfBirth
+          )->format('Y-m-d')
+          ]);
+        }
+      } catch (\Throwable) {
+        // deixa a validação falhar depois
+      }
+    }
+  }
+
   public function authorize(): bool
   {
     return true;
@@ -18,13 +45,12 @@ class StoreClientRequest extends FormRequest
 
   public function rules(): array
   {
-    $id = $this->route('id');
-
     return [
       'name' => 'required|string|min:2|max:255',
       'document' => ['required', new Cpf, Rule::unique('clients', 'document')],
       'date_of_birth' => ['required', new DateOfBirth],
-      'phone' => ['required', new Phone]
+      'email' => ['nullable', 'email', 'required_without:phone'],
+      'phone' => ['nullable', new Phone, 'required_without:email'],
     ];
   }
 
@@ -35,7 +61,8 @@ class StoreClientRequest extends FormRequest
       'document.required' => 'O :attribute é obrigatório.',
       'document.unique' => 'Este :attribute já foi cadastrado.',
       'date_of_birth.required' => 'A :attribute é obrigatória.',
-      'phone.required' => 'O :attribute é obrigatório.',
+      'email.required_without' => 'Informe um :attribute ou telefone.',
+      'phone.required_without' => 'Informe um :attribute ou e-mail.',
     ];
   }
 
@@ -46,28 +73,7 @@ class StoreClientRequest extends FormRequest
       'document' => 'CPF',
       'date_of_birth' => 'data de nascimento',
       'phone' => 'telefone',
+      'email' => 'e-mail',
     ];
-  }
-
-  protected function prepareForValidation(): void
-  {
-    $dateOfBirth = $this->input('date_of_birth');
-
-    if (!is_string($dateOfBirth)) {
-      return;
-    }
-
-    try {
-      if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $dateOfBirth)) {
-        $this->merge([
-          'date_of_birth' => Carbon::createFromFormat(
-            'd/m/Y',
-            $dateOfBirth
-          )->format('Y-m-d'),
-        ]);
-      }
-    } catch (\Throwable) {
-      // Não faz nada → a validação vai falhar depois
-    }
   }
 }

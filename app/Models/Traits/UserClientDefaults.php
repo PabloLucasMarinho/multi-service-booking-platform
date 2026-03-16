@@ -84,20 +84,4 @@ trait UserClientDefaults
 
     return ($yiq >= 128) ? 'var(--dark)' : 'var(--bg-light)';
   }
-
-  protected function name(): Attribute
-  {
-    return Attribute::make(
-      set: fn($value) => trim($this->formatName($value))
-    );
-  }
-
-  protected function formatName(string $name): string
-  {
-    $name = mb_convert_case(trim($name), MB_CASE_TITLE, 'UTF-8');
-
-    $lower = [' De ', ' Da ', ' Do ', ' Dos ', ' Das ', ' E '];
-
-    return str_replace($lower, array_map('mb_strtolower', $lower), " $name ");
-  }
 }

@@ -5,11 +5,20 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 use App\Models\Client;
+use App\Services\ClientService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ClientController extends Controller
 {
+  public function __construct(
+    private ClientService $clientService
+  )
+  {
+  }
+
   /**
    * Display a listing of the resource.
    */
@@ -44,16 +53,25 @@ class ClientController extends Controller
    */
   public function store(StoreClientRequest $request)
   {
+//    dd($request->all());
     Gate::authorize('create', Client::class);
 
-    Client::create([
-      ...$request->validated(),
-      'user_uuid' => auth()->id(),
-    ]);
+    try {
+      $this->clientService->createClient($request->validated());
 
-    return redirect()
-      ->route('clients.index')
-      ->with('success', 'Cliente cadastrado com sucesso!');
+      return redirect()
+        ->route('clients.index')
+        ->with('success', 'Cliente cadastrado com sucesso!');
+
+    } catch (Throwable $e) {
+      Log::error('Erro ao cadastrar cliente.', [
+        'exception' => $e,
+      ]);
+
+      return back()
+        ->withInput()
+        ->with('error', 'Erro ao cadastrar cliente. Tente novamente.');
+    }
   }
 
   /**

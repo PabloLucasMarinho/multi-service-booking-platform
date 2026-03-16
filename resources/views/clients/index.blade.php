@@ -44,6 +44,7 @@
           <th>Nome</th>
           <th>Data de Nascimento</th>
           <th>CPF</th>
+          <th>E-mail</th>
           <th>Telefone</th>
         </tr>
         </thead>
@@ -55,8 +56,9 @@
           <tr>
             <td>{{ $client->name }}</td>
             <td>{{ $client->date_of_birth_formatted }}</td>
-            <td>{{ $client->document }}</td>
-            <td>{{ $client->phone }}</td>
+            <td>{{ $client->document_formatted }}</td>
+            <td>{{ $client->email }}</td>
+            <td>{{ $client->phone_formatted }}</td>
           </tr>
 
         @empty

@@ -9,24 +9,7 @@
   @endif
 @stop
 
-{{-- Extend and customize the page content header --}}
-
-{{--@section('content_header')--}}
-{{--  @hasSection('content_header_title')--}}
-{{--    <h1 class="text-muted">--}}
-{{--      @yield('content_header_title')--}}
-
-{{--      @hasSection('content_header_subtitle')--}}
-{{--        <small class="text-dark">--}}
-{{--          <i class="fas fa-xs fa-angle-right text-muted"></i>--}}
-{{--          @yield('content_header_subtitle')--}}
-{{--        </small>--}}
-{{--      @endif--}}
-{{--    </h1>--}}
-{{--  @endif--}}
-{{--@stop--}}
-
-{{-- Rename section content to content_body --}}
+@section('plugins.Toastr', true)
 
 @section('content')
   @yield('content_body')
@@ -44,3 +27,27 @@
     </strong>
   </div>
 @stop
+
+@push('js')
+  <script>
+    $(document).ready(function () {
+      // Configurações globais (Opcional)
+      toastr.options = {
+        "progressBar": true,
+        "positionClass": "toast-top-center",
+      }
+
+      // Exemplo de disparo manual via JS
+      // toastr.success('Operação realizada com sucesso!');
+
+      // Integração com as sessões do Laravel
+      @if(Session::has('success'))
+      toastr.success("{{ Session::get('success') }}");
+      @endif
+
+      @if(Session::has('error'))
+      toastr.error("{{ Session::get('error') }}");
+      @endif
+    });
+  </script>
+@endpush

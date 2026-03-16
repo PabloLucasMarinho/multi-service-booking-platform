@@ -21,7 +21,10 @@
           name="name"
           label="Nome"
           placeholder="Digite o nome do cliente"
+          value="{{old('name')}}"
+          autocomplete="name"
           fgroup-class="col-md-6"
+          required
         />
 
         <x-adminlte-input
@@ -29,7 +32,10 @@
           name="document"
           label="CPF"
           placeholder="Digite o CPF do cliente"
+          value="{{old('document')}}"
+          autocomplete="on"
           fgroup-class="col-md-6"
+          required
         />
 
         <x-adminlte-input
@@ -37,7 +43,20 @@
           name="date_of_birth"
           label="Data de Nascimento"
           placeholder="Digite o data de nascimento do cliente"
-          fgroup-class="col-md-6"
+          value="{{old('date_of_birth')}}"
+          autocomplete="bday"
+          fgroup-class="col-md-4"
+          required
+        />
+
+        <x-adminlte-input
+          id="email"
+          name="email"
+          label="E-mail"
+          placeholder="Digite o e-mail do cliente"
+          value="{{old('email')}}"
+          autocomplete="email"
+          fgroup-class="col-md-4"
         />
 
         <x-adminlte-input
@@ -45,8 +64,9 @@
           name="phone"
           label="Telefone"
           placeholder="Digite o telefone do cliente"
+          value="{{old('phone')}}"
           autocomplete="tel-local"
-          fgroup-class="col-md-6"
+          fgroup-class="col-md-4"
         />
       </div>
 
