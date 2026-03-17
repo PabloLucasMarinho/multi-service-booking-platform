@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('subtitle', 'Clientes')
+@section('subtitle', 'Cadastrar Cliente')
 @section('content_header')
-  <h1>Clientes</h1>
+  <h1>Cadastrar Cliente</h1>
 
   <x-breadcrumb :items="[
     ['label' => 'Dashboard', 'url' => route('home')],
@@ -11,7 +11,7 @@
   ]"/>
 @stop
 
-@section('content_body')
+@section('content')
   <x-adminlte-card title="Cadastro de Cliente" theme="primary" icon="fas fa-users">
     <form action="{{route('clients.store')}}" method="POST">
       @csrf

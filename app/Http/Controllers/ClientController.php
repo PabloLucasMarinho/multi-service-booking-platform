@@ -26,14 +26,9 @@ class ClientController extends Controller
   {
     Gate::authorize('viewAny', Client::class);
 
-    $search = $request->query('search');
-
-    $clients = Client::query()->when($search, function ($query, $search) {
-      $query->where('name', 'like', "%$search%");
-    })
+    $clients = Client::query()
       ->orderBy('name')
-      ->paginate(10)
-      ->withQueryString();
+      ->get();
 
     return view('clients.index', compact('clients'));
   }
@@ -56,7 +51,7 @@ class ClientController extends Controller
     Gate::authorize('create', Client::class);
 
     try {
-      $this->clientService->createClient($request->validated(), $request->user()->uuid);
+      $this->clientService->create($request->validated(), $request->user()->uuid);
 
       return redirect()
         ->route('clients.index')
@@ -78,9 +73,7 @@ class ClientController extends Controller
    */
   public function show(Client $client)
   {
-    Gate::authorize('view', $client);
-
-    return view('clients.show', compact('client'));
+    //
   }
 
   /**
@@ -100,9 +93,22 @@ class ClientController extends Controller
   {
     Gate::authorize('update', $client);
 
-    $client->update($request->validated());
+    try {
+      $this->clientService->update($request->validated(), $client);
 
-    return redirect()->route('clients.show', $client);
+      return redirect()
+        ->route('clients.index')
+        ->with('success', 'Cliente editado com sucesso!');
+
+    } catch (Throwable $e) {
+      Log::error('Erro ao editar cliente.', [
+        'exception' => $e,
+      ]);
+
+      return back()
+        ->withInput()
+        ->with('error', 'Erro ao editar cliente.');
+    }
   }
 
   /**

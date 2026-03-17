@@ -10,6 +10,6 @@
 
 {{-- Content body: main page content --}}
 
-@section('content_body')
+@section('content')
   <p>Welcome to this beautiful admin panel.</p>
 @stop

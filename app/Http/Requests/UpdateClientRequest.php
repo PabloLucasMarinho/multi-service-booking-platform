@@ -5,17 +5,44 @@ namespace App\Http\Requests;
 use App\Rules\Cpf;
 use App\Rules\DateOfBirth;
 use App\Rules\Phone;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
-class UpdateClientRequest extends FormRequest
+class UpdateClientRequest extends BaseFormRequest
 {
+  protected array $sanitize = [
+    'name' => 'string',
+    'document' => 'digits',
+    'phone' => 'digits',
+    'email' => 'lowercase',
+  ];
+
+  protected function prepareForValidation(): void
+  {
+    $dateOfBirth = $this->input('date_of_birth');
+
+    if (is_string($dateOfBirth)) {
+      try {
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $dateOfBirth)) {
+          $this->merge(['date_of_birth' => Carbon::createFromFormat(
+            'd/m/Y',
+            $dateOfBirth
+          )->format('Y-m-d')
+          ]);
+        }
+      } catch (\Throwable) {
+        // deixa a validação falhar depois
+      }
+    }
+
+    parent::prepareForValidation();
+  }
+
   public function authorize(): bool
   {
     return true;
   }
-  
+
   public function rules(): array
   {
     $client = $this->route('client');
@@ -23,8 +50,9 @@ class UpdateClientRequest extends FormRequest
     return [
       'name' => 'required|string|min:2|max:255',
       'document' => ['required', new Cpf, Rule::unique('clients', 'document')->ignore($client)],
-      'date_of_birth' => ['required', new DateOfBirth],
-      'phone' => ['required', new Phone]
+      'date_of_birth' => ['required', 'date', new DateOfBirth],
+      'email' => ['nullable', 'email', 'required_without:phone', Rule::unique('clients', 'email')->ignore($client)],
+      'phone' => ['nullable', 'required_without:email', new Phone]
     ];
   }
 
@@ -33,9 +61,12 @@ class UpdateClientRequest extends FormRequest
     return [
       'name.required' => 'O :attribute é obrigatório.',
       'document.required' => 'O :attribute é obrigatório.',
-      'document.unique' => 'Este :attribute já foi cadastrado.',
+      'document.unique' => 'Já existe um cliente cadastrado com esse :attribute.',
+      'date_of_birth.date' => 'A :attribute é inválida.',
       'date_of_birth.required' => 'A :attribute é obrigatória.',
-      'phone.required' => 'O :attribute é obrigatório.',
+      'email.required_without' => 'Informe um :attribute ou telefone.',
+      'email.unique' => 'Já existe um cliente cadastrado com esse :attribute.',
+      'phone.required_without' => 'Informe um :attribute ou e-mail.',
     ];
   }
 
@@ -46,28 +77,7 @@ class UpdateClientRequest extends FormRequest
       'document' => 'CPF',
       'date_of_birth' => 'data de nascimento',
       'phone' => 'telefone',
+      'email' => 'e-mail',
     ];
-  }
-
-  protected function prepareForValidation(): void
-  {
-    $dateOfBirth = $this->input('date_of_birth');
-
-    if (!is_string($dateOfBirth)) {
-      return;
-    }
-
-    try {
-      if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $dateOfBirth)) {
-        $this->merge([
-          'date_of_birth' => Carbon::createFromFormat(
-            'd/m/Y',
-            $dateOfBirth
-          )->format('Y-m-d'),
-        ]);
-      }
-    } catch (\Throwable) {
-      // Não faz nada → a validação vai falhar depois
-    }
   }
 }

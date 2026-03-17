@@ -59,10 +59,11 @@ class StoreClientRequest extends BaseFormRequest
     return [
       'name.required' => 'O :attribute é obrigatório.',
       'document.required' => 'O :attribute é obrigatório.',
-      'document.unique' => 'Este :attribute já foi cadastrado.',
+      'document.unique' => 'Já existe um cliente cadastrado com esse :attribute.',
       'date_of_birth.date' => 'A :attribute é inválida.',
       'date_of_birth.required' => 'A :attribute é obrigatória.',
       'email.required_without' => 'Informe um :attribute ou telefone.',
+      'email.unique' => 'Já existe um cliente cadastrado com esse :attribute.',
       'phone.required_without' => 'Informe um :attribute ou e-mail.',
     ];
   }

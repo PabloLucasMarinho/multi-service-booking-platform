@@ -11,7 +11,21 @@ class DateOfBirth implements ValidationRule
   public function validate(string $attribute, mixed $value, Closure $fail): void
   {
     try {
-      $date = Carbon::parse($value);
+      $date = null;
+
+      foreach (['Y-m-d', 'd/m/Y'] as $format) {
+        try {
+          $date = Carbon::createFromFormat($format, $value);
+          break;
+        } catch (\Throwable) {
+          continue;
+        }
+      }
+
+      if (!$date) {
+        $fail('A data de nascimento é inválida.');
+        return;
+      }
 
       if ($date->isFuture()) {
         $fail('A data de nascimento não pode ser futura.');

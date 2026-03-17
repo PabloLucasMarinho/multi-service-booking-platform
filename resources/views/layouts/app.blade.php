@@ -1,7 +1,5 @@
 @extends('adminlte::page')
 
-{{-- Extend and customize the browser title --}}
-
 @section('title')
   {{ config('adminlte.title') }}
   @hasSection('subtitle')
@@ -10,12 +8,6 @@
 @stop
 
 @section('plugins.Toastr', true)
-
-@section('content')
-  @yield('content_body')
-@stop
-
-{{-- Create a common footer --}}
 
 @section('footer')
   <div class="d-flex justify-content-end">
