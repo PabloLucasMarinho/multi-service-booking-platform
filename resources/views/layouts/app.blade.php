@@ -13,7 +13,7 @@
   <div class="d-flex justify-content-end">
     <strong>
       Feito por:
-      <a href="{{ config('app.dev_url', '#') }}" target="_blank" class="text-dark">
+      <a href="{{ config('app.dev_url', '#') }}" target="_blank" class="text-primary">
         {{ config('app.dev_name', 'Pablo Marinho') }}
       </a>
     </strong>
