@@ -53,11 +53,10 @@ class ClientController extends Controller
    */
   public function store(StoreClientRequest $request)
   {
-//    dd($request->all());
     Gate::authorize('create', Client::class);
 
     try {
-      $this->clientService->createClient($request->validated());
+      $this->clientService->createClient($request->validated(), $request->user()->uuid);
 
       return redirect()
         ->route('clients.index')

@@ -3,16 +3,13 @@
 namespace App\Services;
 
 use App\Models\Client;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ClientService
 {
-  public function createClient(array $data): void
+  public function createClient(array $data, string $userUuid): void
   {
-    DB::transaction(function () use ($data) {
-      $userUuid = Auth::user()->uuid;
-
+    DB::transaction(function () use ($data, $userUuid) {
       Client::create([
         'name' => $data['name'],
         'date_of_birth' => $data['date_of_birth'],

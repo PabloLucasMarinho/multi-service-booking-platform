@@ -4,14 +4,14 @@ namespace App\Models;
 
 use App\Models\Traits\UserDetailDefaults;
 use Carbon\Carbon;
-use DateTimeInterface;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserDetail extends Model
 {
-  use UserDetailDefaults;
+  use HasFactory, UserDetailDefaults;
 
   protected $table = 'user_details';
   protected $primaryKey = 'uuid';
@@ -38,13 +38,12 @@ class UserDetail extends Model
     'salary' => 'decimal:2',
   ];
 
-  protected function salary(): Attribute {
+  protected function salary(): Attribute
+  {
     return Attribute::make(
-      get: fn ($value) =>
-      number_format($value, 2, ',', '.'),
+      get: fn($value) => number_format($value, 2, ',', '.'),
 
-      set: fn ($value) =>
-      (float) str_replace(',', '.', str_replace('.', '', $value))
+      set: fn($value) => (float)str_replace(',', '.', str_replace('.', '', $value))
     );
   }
 

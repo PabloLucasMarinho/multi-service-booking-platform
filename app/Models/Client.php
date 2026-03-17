@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Models\Traits\FormatsAttributes;
 use App\Models\Traits\UserClientDefaults;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Client extends Model
 {
-  use HasUuids, FormatsAttributes, UserClientDefaults;
+  use HasUuids, HasFactory, FormatsAttributes, UserClientDefaults;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';
