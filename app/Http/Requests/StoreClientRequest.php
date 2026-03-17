@@ -48,8 +48,8 @@ class StoreClientRequest extends BaseFormRequest
     return [
       'name' => 'required|string|min:2|max:255',
       'document' => ['required', new Cpf, Rule::unique('clients', 'document')],
-      'date_of_birth' => ['required', new DateOfBirth],
-      'email' => ['nullable', 'email', 'required_without:phone'],
+      'date_of_birth' => ['required', 'date', new DateOfBirth],
+      'email' => ['nullable', 'email', 'required_without:phone', Rule::unique('clients', 'email')],
       'phone' => ['nullable', new Phone, 'required_without:email'],
     ];
   }
@@ -60,6 +60,7 @@ class StoreClientRequest extends BaseFormRequest
       'name.required' => 'O :attribute é obrigatório.',
       'document.required' => 'O :attribute é obrigatório.',
       'document.unique' => 'Este :attribute já foi cadastrado.',
+      'date_of_birth.date' => 'A :attribute é inválida.',
       'date_of_birth.required' => 'A :attribute é obrigatória.',
       'email.required_without' => 'Informe um :attribute ou telefone.',
       'phone.required_without' => 'Informe um :attribute ou e-mail.',
