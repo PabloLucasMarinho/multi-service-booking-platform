@@ -310,6 +310,8 @@ return [
       'text' => 'employees',
       'route' => 'users.index',
       'icon' => 'fas fa-fw fa-address-card',
+      'can' => 'viewAny',
+      'model' => \App\Models\User::class,
     ],
     ['header' => 'account_settings'],
     [
@@ -355,14 +357,14 @@ return [
 
   'plugins' => [
     'InputMask' => [
-      'active' => true,
+      'active' => false,
       'files' => [
         [
           'type' => 'js',
           'asset' => false,
-          'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js',
-        ]
-      ]
+          'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js',
+        ],
+      ],
     ],
     'Datatables' => [
       'active' => false,
@@ -480,7 +482,7 @@ return [
       ],
     ],
     'Toastr' => [
-      'active' => true,
+      'active' => false,
       'files' => [
         [
           'type' => 'js',
@@ -491,6 +493,31 @@ return [
           'type' => 'css',
           'asset' => true,
           'location' => '//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css'
+        ],
+      ],
+    ],
+    'Tempus' => [
+      'active' => false,
+      'files' => [
+        [
+          'type' => 'js',
+          'asset' => false,
+          'location' => '//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js'
+        ],
+        [
+          'type' => 'js',
+          'asset' => false,
+          'location' => '//cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js'
+        ],
+        [
+          'type' => 'js',
+          'asset' => true,
+          'location' => 'vendor/moment/locale/pt-br.js'
+        ],
+        [
+          'type' => 'css',
+          'asset' => false,
+          'location' => '//cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css'
         ],
       ],
     ],

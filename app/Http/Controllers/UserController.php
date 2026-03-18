@@ -20,14 +20,7 @@ class UserController extends Controller
   {
     Gate::authorize('viewAny', User::class);
 
-    $search = $request->query('search');
-
-    $users = User::query()->when($search, function ($query, $search) {
-      $query->where('name', 'like', "%$search%");
-    })
-      ->orderBy('name')
-      ->paginate(10)
-      ->withQueryString();
+    $users = User::where('uuid', '!=', auth()->user()->uuid)->get();
 
     return view('users.index', compact('users'));
   }

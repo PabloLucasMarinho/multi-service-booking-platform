@@ -12,7 +12,8 @@ class UserService
   public function createEmployee(array $data): void
   {
     DB::transaction(function () use ($data) {
-      $roleUuid = Role::where('name', 'employee')->value('uuid');
+      $roleUuid = Role::where('name', $data['role'])->value('uuid')
+        ?? throw new \RuntimeException("Função '{$data['role']}' não encontrada.");
 
       $user = User::create([
         'name' => $data['name'],
@@ -21,14 +22,13 @@ class UserService
         'role_uuid' => $roleUuid,
       ]);
 
-      $user->details->create([
-        'user_uuid' => $user['uuid'],
+      $user->details()->create([
         'document' => $data['document'],
         'date_of_birth' => $data['date_of_birth'],
         'phone' => $data['phone'],
         'zip_code' => $data['zip_code'],
         'address' => $data['address'],
-        'address_complement' => $data['address_complement'],
+        'address_complement' => $data['address_complement'] ?? null,
         'neighborhood' => $data['neighborhood'],
         'city' => $data['city'],
         'salary' => $data['salary'],

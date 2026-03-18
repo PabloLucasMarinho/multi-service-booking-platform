@@ -21,21 +21,37 @@ trait FormatsAttributes
   protected function documentFormatted(): Attribute
   {
     return Attribute::make(
-      get: fn($value, $attributes) => $this->formatCpf($attributes['document'] ?? null)
+      get: fn() => $this->formatCpf($this->document)
     );
   }
 
   protected function phoneFormatted(): Attribute
   {
     return Attribute::make(
-      get: fn($value, $attributes) => $this->formatPhone($attributes['phone'] ?? null)
+      get: fn() => $this->formatPhone($this->phone)
     );
   }
 
   protected function dateOfBirthFormatted(): Attribute
   {
     return Attribute::make(
-      get: fn($value, $attributes) => $this->formatDate($attributes['date_of_birth'] ?? null)
+      get: fn() => $this->formatDate($this->date_of_birth)
+    );
+  }
+
+  protected function admissionDateFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->formatDate($this->admission_date)
+    );
+  }
+
+  protected function salaryFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->salary
+        ? number_format((float)$this->salary, 2, ',', '.')
+        : null
     );
   }
 

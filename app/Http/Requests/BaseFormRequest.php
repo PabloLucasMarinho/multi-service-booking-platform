@@ -23,6 +23,7 @@ class BaseFormRequest extends FormRequest
         'digits' => preg_replace('/\D/', '', $value),
         'string' => preg_replace('/\s+/', ' ', trim($value)),
         'lowercase' => strtolower(trim($value)),
+        'currency' => str_replace(',', '.', str_replace('.', '', $value)),
         default => throw new \InvalidArgumentException(
           "Sanitizer type [$type] not supported."
         ),

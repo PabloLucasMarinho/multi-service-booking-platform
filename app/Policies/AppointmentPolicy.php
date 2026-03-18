@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Appointment;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class AppointmentPolicy
 {
@@ -37,7 +36,7 @@ class AppointmentPolicy
    */
   public function update(User $user, Appointment $appointment): bool
   {
-    if ($user->role->name ==='admin') {
+    if ($user->role->name === 'Administrador') {
       return true;
     }
 

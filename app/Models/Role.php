@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\RoleName;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -31,6 +33,17 @@ class Role extends Model
       'permission_uuid',
       'uuid',
       'uuid'
+    );
+  }
+
+  protected function name(): Attribute
+  {
+    return Attribute::make(
+      get: fn(string $value) => match ($value) {
+        'admin' => 'Administrador',
+        'employee' => 'Funcionário',
+        default => ucfirst($value),
+      }
     );
   }
 }
