@@ -55,6 +55,13 @@ trait FormatsAttributes
     );
   }
 
+  protected function zipCodeFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->formatCep($this->zip_code)
+    );
+  }
+
   protected function formatName(?string $name): ?string
   {
     if (!$name) {
@@ -123,5 +130,18 @@ trait FormatsAttributes
     } catch (\Throwable) {
       return (string)$date;
     }
+  }
+
+  private function formatCep(?string $cep): ?string
+  {
+    if (!$cep || strlen($cep) !== 8) {
+      return $cep;
+    }
+
+    return preg_replace(
+      '/(\d{5})(\d{3})/',
+      '$1-$2',
+      $cep
+    );
   }
 }

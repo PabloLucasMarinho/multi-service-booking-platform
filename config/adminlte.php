@@ -133,12 +133,12 @@ return [
   |
   */
 
-  'usermenu_enabled' => false,
-  'usermenu_header' => false,
+  'usermenu_enabled' => true,
+  'usermenu_header' => true,
   'usermenu_header_class' => 'bg-primary',
   'usermenu_image' => false,
-  'usermenu_desc' => false,
-  'usermenu_profile_url' => false,
+  'usermenu_desc' => true,
+  'usermenu_profile_url' => true,
 
   /*
   |--------------------------------------------------------------------------
@@ -298,28 +298,7 @@ return [
   |
   */
 
-  'menu' => [
-    // Sidebar items:
-    ['header' => 'main_navigation'],
-    [
-      'text' => 'clients',
-      'route' => 'clients.index',
-      'icon' => 'fas fa-fw fa-users',
-    ],
-    [
-      'text' => 'employees',
-      'route' => 'users.index',
-      'icon' => 'fas fa-fw fa-address-card',
-      'can' => 'viewAny',
-      'model' => \App\Models\User::class,
-    ],
-    ['header' => 'account_settings'],
-    [
-      'text' => 'profile',
-      'url' => 'admin/settings',
-      'icon' => 'fas fa-fw fa-user',
-    ],
-  ],
+  'menu' => [],
 
   /*
   |--------------------------------------------------------------------------

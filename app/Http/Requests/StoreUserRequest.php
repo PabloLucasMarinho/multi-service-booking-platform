@@ -14,6 +14,7 @@ class StoreUserRequest extends BaseFormRequest
   protected array $sanitize = [
     'name' => 'string',
     'document' => 'digits',
+    'zip_code' => 'digits',
     'phone' => 'digits',
     'email' => 'lowercase',
     'salary' => 'currency',

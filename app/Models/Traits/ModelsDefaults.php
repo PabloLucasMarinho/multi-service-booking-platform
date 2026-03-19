@@ -9,9 +9,9 @@ use Illuminate\Support\Str;
 /**
  * @mixin Model
  */
-trait UserClientDefaults
+trait ModelsDefaults
 {
-  protected static function bootUserClientDefaults(): void
+  protected static function bootModelsDefaults(): void
   {
     static::saving(function (Model $model) {
       if ($model->isDirty('name')) {
@@ -24,7 +24,7 @@ trait UserClientDefaults
         $model->uuid = (string)Str::uuid();
       }
 
-      if (empty($model->color)) {
+      if (in_array('color', $model->getFillable()) && empty($model->color)) {
         $model->color = static::generateRandomColor();
       }
     });
@@ -68,7 +68,7 @@ trait UserClientDefaults
     return Attribute::make(
       get: fn() => $this->color
         ? $this->calculateContrastColor($this->color)
-        : 'var(--dark)',
+        : 'text-body',
     );
   }
 
@@ -82,6 +82,6 @@ trait UserClientDefaults
     // Fórmula de luminosidade YIQ
     $yiq = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
 
-    return ($yiq >= 128) ? 'var(--dark)' : 'var(--bg-light)';
+    return ($yiq >= 128) ? 'text-body' : 'text-white';
   }
 }

@@ -20,5 +20,6 @@ return [
   'clients' => 'Clientes',
   'employees' => 'Funcionários',
   'appointments' => 'Agendamentos',
-  'services' => 'Serviços'
+  'services' => 'Serviços',
+  'password' => 'Alterar Senha',
 ];

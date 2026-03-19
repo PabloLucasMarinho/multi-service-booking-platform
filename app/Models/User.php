@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Traits\UserClientDefaults;
+use App\Models\Traits\ModelsDefaults;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable
 {
-  use HasFactory, Notifiable, UserClientDefaults;
+  use HasFactory, Notifiable, ModelsDefaults;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';
@@ -24,6 +24,7 @@ class User extends Authenticatable
     'name',
     'email',
     'password',
+    'color',
     'role_uuid',
   ];
 
@@ -63,5 +64,16 @@ class User extends Authenticatable
   public function details(): HasOne
   {
     return $this->hasOne(UserDetail::class, 'user_uuid', 'uuid');
+  }
+
+  public function adminlte_desc(): string
+  {
+    return $this->role->name ?? '';
+  }
+
+// URL de perfil dinâmica (usa o uuid do usuário)
+  public function adminlte_profile_url(): string
+  {
+    return route('users.show', $this);
   }
 }
