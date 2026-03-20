@@ -48,8 +48,10 @@ class AppServiceProvider extends ServiceProvider
       $event->menu->add([
         'text' => 'employees',
         'route' => 'users.index',
-        'icon' => 'fas fa-fw fa-user-tie',
+        'icon' => 'fas fa-fw fa-id-badge',
         'active' => $isOwnProfile ? [] : ['users', 'users/*'],
+        'can' => 'viewAny',
+        'model' => User::class,
       ]);
 
       $event->menu->add(['header' => 'Configurações da Conta']);

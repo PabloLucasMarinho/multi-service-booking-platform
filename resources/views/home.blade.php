@@ -1,12 +1,11 @@
 @extends('layouts.app')
 
-{{-- Customize layout sections --}}
+@section('plugins.Toastr', true)
 
 @section('subtitle', 'Início')
 @section('content_header')
   <h1>Dashboard</h1>
 @stop
-
 
 {{-- Content body: main page content --}}
 

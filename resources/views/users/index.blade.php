@@ -41,19 +41,22 @@
         <td>{{$user->email}}</td>
         <td>{{$user->role->name}}</td>
         <td class="d-flex">
-          <a href="{{ route('users.show', $user) }}" class="btn btn-primary mr-2">Visualizar</a>
-          @can('update', $user)
-            <a href="{{ route('users.edit', $user) }}" class="btn btn-info mr-2">Editar</a>
-          @endcan
+          <a href="{{ route('users.show', $user) }}" class="btn btn-primary mr-2" title="Ver">
+            <i class="fas fa-xg fa-eye"></i>
+          </a>
 
-          @can('delete', $user)
-            <x-adminlte-button
-              data-toggle="modal"
-              data-target="#removeClientModal"
-              theme="danger"
-              label="Apagar"
-            />
-          @endcan
+          <a href="{{ route('users.edit', $user) }}" class="btn btn-info mr-2" title="Editar">
+            <i class="fas fa-xg fa-pen"></i>
+          </a>
+          
+          <x-adminlte-button
+            data-toggle="modal"
+            data-target="#removeClientModal"
+            theme="danger"
+            icon="fas fa-xg fa-trash-alt"
+            title="Apagar"
+          />
+
         </td>
       </tr>
 

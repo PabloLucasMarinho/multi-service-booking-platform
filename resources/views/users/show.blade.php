@@ -28,7 +28,9 @@
       </div>
 
       <div>
-        <a href="{{route('users.edit', $user)}}" class="btn btn-success">Editar</a>
+        <a href="{{route('users.edit', $user)}}" class="btn btn-light">
+          <i class="fas fa-pen"></i>
+        </a>
       </div>
     </div>
 

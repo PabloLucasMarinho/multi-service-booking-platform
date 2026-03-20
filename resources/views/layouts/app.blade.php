@@ -29,9 +29,6 @@
         "positionClass": "toast-top-center",
       }
 
-      // Exemplo de disparo manual via JS
-      // toastr.success('Operação realizada com sucesso!');
-
       // Integração com as sessões do Laravel
       @if(Session::has('success'))
       toastr.success("{{ Session::get('success') }}");
@@ -39,6 +36,10 @@
 
       @if(Session::has('error'))
       toastr.error("{{ Session::get('error') }}");
+      @endif
+
+      @if(Session::has('warning'))
+      toastr.warning("{{ Session::get('warning') }}");
       @endif
     });
   </script>

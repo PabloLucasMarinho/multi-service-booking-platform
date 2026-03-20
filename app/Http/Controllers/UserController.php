@@ -13,6 +13,12 @@ use Throwable;
 
 class UserController extends Controller
 {
+  public function __construct(
+    private UserService $userService
+  )
+  {
+  }
+
   /**
    * Display a listing of the resource.
    */
@@ -38,12 +44,29 @@ class UserController extends Controller
   /**
    * Store a newly created resource in storage.
    */
-  public function store(StoreUserRequest $request, UserService $service)
+  public function store(StoreUserRequest $request)
   {
     Gate::authorize('create', User::class);
 
+    $deletedUser = User::onlyTrashed()
+      ->where(function ($query) use ($request) {
+        $query->where('email', $request->email)
+          ->orWhereHas('details', function ($query) use ($request) {
+            $query->where('document', $request->document);
+          });
+      })
+      ->first();
+
+    if ($deletedUser) {
+      return response()->json([
+        'deleted_user' => true,
+        'uuid' => $deletedUser->uuid,
+        'nome' => $deletedUser->name,
+      ]);
+    }
+
     try {
-      $service->createEmployee($request->validated());
+      $this->userService->create($request->validated());
 
       return redirect()
         ->route('users.index')
@@ -87,25 +110,31 @@ class UserController extends Controller
   /**
    * Update the specified resource in storage.
    */
-  public function update(UpdateUserRequest $request, User $user, UserService $service)
+  public function update(UpdateUserRequest $request, User $user)
   {
     Gate::authorize('update', $user);
 
     try {
-      $service->updateEmployee($request->validated(), $user);
+      $this->userService->update($request->validated(), $user);
+
+      if ($user->uuid === auth()->user()->uuid) {
+        return redirect()
+          ->route('users.show', $user)
+          ->with('success', 'Cadastro alterado com sucesso!');
+      }
 
       return redirect()
         ->route('users.index')
-        ->with('success', 'Funcionário editado com sucesso!.');
+        ->with('success', 'Cadastro de funcionário alterado com sucesso!');
 
     } catch (Throwable $e) {
-      Log::error('Erro ao editar funcionário', [
+      Log::error('Erro ao alterar cadastro de funcionário.', [
         'exception' => $e,
       ]);
 
       return back()
         ->withInput()
-        ->with('error', 'Erro ao editar funcionário. Tente novamente.');
+        ->with('error', 'Erro ao alterar cadastro de funcionário. Tente novamente.');
     }
   }
 
@@ -119,5 +148,27 @@ class UserController extends Controller
     $user->delete();
 
     return redirect()->route('users.index');
+  }
+
+  public function forceDelete(User $user)
+  {
+    Gate::authorize('forceDelete', $user);
+
+    $user->onlyTrashed()->findOrFail($user)->forceDelete();
+
+    return redirect()
+      ->route('users.index')
+      ->with('success', 'Funcionário removido permanentemente.');
+  }
+
+  public function restore(User $user)
+  {
+    Gate::authorize('restore', $user);
+
+    $user->onlyTrashed()->findOrFail($user)->restore();
+
+    return redirect()
+      ->route('users.index')
+      ->with('success', 'Dados do funcionário restaurados com sucesso.');
   }
 }

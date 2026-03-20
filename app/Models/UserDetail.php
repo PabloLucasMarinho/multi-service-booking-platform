@@ -7,10 +7,11 @@ use App\Models\Traits\ModelsDefaults;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserDetail extends Model
 {
-  use HasFactory, ModelsDefaults, FormatsAttributes;
+  use HasFactory, ModelsDefaults, FormatsAttributes, SoftDeletes;
 
   protected $table = 'user_details';
   protected $primaryKey = 'uuid';

@@ -1,23 +1,24 @@
 @extends('layouts.app')
 
-@section('subtitle', 'Cadastrar Funcionário')
+@section('subtitle', 'Editar Funcionário')
 
 @section('plugins.Tempus', true)
 @section('plugins.InputMask', true)
 
 @section('content_header')
-  <h1>Cadastrar Funcionário</h1>
+  <h1>Editar Funcionário</h1>
 
   <x-breadcrumb :items="[
     ['label' => 'Dashboard', 'url' => route('home')],
     ['label' => 'Funcionários', 'url' => route('users.index')],
-    ['label' => 'Cadastrar Funcionário'],
+    ['label' => 'Editar Funcionário'],
   ]"/>
 @stop
 
 @section('content')
-  <x-adminlte-card title="Cadastro de Funcionário" theme="primary" icon="fas fa-address-card">
-    <form action="{{route('users.store')}}" method="POST">
+  <x-adminlte-card title="Edição de Funcionário" theme="primary" icon="fas fa-address-card">
+    <form action="{{route('users.update', $user)}}" method="POST">
+      @method('PUT')
       @csrf
 
       <div class="row border border-dark-subtle rounded mb-2 pt-2">
@@ -26,7 +27,7 @@
           name="name"
           label="Nome *"
           placeholder="p.ex. João da Silva"
-          value="{{old('name')}}"
+          value="{{$user->name}}"
           autocomplete="name"
           fgroup-class="col-md-6"
           required
@@ -37,7 +38,7 @@
           name="document"
           label="CPF *"
           placeholder="p.ex. 123.456.789-00"
-          value="{{old('document')}}"
+          value="{{$user->details->document}}"
           autocomplete="on"
           fgroup-class="col-md-6"
           required
@@ -56,6 +57,7 @@
         <x-adminlte-input-date
           id="date_of_birth" name="date_of_birth" :config="$config" label="Data de Nascimento *"
           placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
+          value="{{$user->details->date_of_birth_formatted}}"
         >
           <x-slot name="prependSlot">
             <div class="input-group-text bg-dark-subtle">
@@ -69,7 +71,7 @@
           name="email"
           label="E-mail"
           placeholder="p.ex. joao@gmail.com"
-          value="{{old('email')}}"
+          value="{{$user->email}}"
           autocomplete="email"
           fgroup-class="col-md-4"
         >
@@ -85,7 +87,7 @@
           name="phone"
           label="Telefone"
           placeholder="p.ex. (21)91234-5678"
-          value="{{old('phone')}}"
+          value="{{$user->details->phone_formatted}}"
           autocomplete="tel-national"
           fgroup-class="col-md-4"
         >
@@ -103,7 +105,7 @@
           name="zip_code"
           label="CEP *"
           placeholder="p.ex. 32123-123"
-          value="{{old('zip_code')}}"
+          value="{{$user->details->zip_code_formatted}}"
           autocomplete="postal_code"
           fgroup-class="col-md-2"
         />
@@ -113,7 +115,7 @@
           name="address"
           label="Endereço *"
           placeholder="p.ex. Rua da Feira, 123"
-          value="{{old('address')}}"
+          value="{{$user->details->address}}"
           autocomplete="address-line1"
           fgroup-class="col-md-4"
           required
@@ -124,7 +126,7 @@
           name="address_complement"
           label="Complemento"
           placeholder="p.ex. Casa 1"
-          value="{{old('address_complement')}}"
+          value="{{$user->details->address_complement}}"
           autocomplete="address-line2"
           fgroup-class="col-md-2"
         />
@@ -134,7 +136,7 @@
           name="neighborhood"
           label="Bairro *"
           placeholder="p.ex. Realengo"
-          value="{{old('neighborhood')}}"
+          value="{{$user->details->neighborhood}}"
           autocomplete="address-line3"
           fgroup-class="col-md-2"
         />
@@ -144,21 +146,31 @@
           name="city"
           label="Cidade *"
           placeholder="p.ex. Rio de Janeiro"
-          value="{{old('city')}}"
+          value="{{$user->details->city}}"
           autocomplete="address-level2"
           fgroup-class="col-md-2"
         />
       </div>
 
       <div class="row border border-dark-subtle rounded mb-2 pt-2">
-        <x-adminlte-select name="role" label="Função" fgroup-class="col-md-4">
+        <x-adminlte-select
+          name="role" label="Função" fgroup-class="col-md-4"
+        >
           <x-slot name="prependSlot">
             <div class="input-group-text">
               <i class="fas fa-user-tag"></i>
             </div>
           </x-slot>
-          <option value="employee">Funcionário</option>
-          <option value="admin">Administrador</option>
+          <option value="employee"
+            {{$user->role->name === 'Funcionário' ? 'selected' : ''}}
+          >
+            Funcionário
+          </option>
+          <option value="admin"
+            {{$user->role->name === 'Administrador' ? 'selected' : ''}}
+          >
+            Administrador
+          </option>
         </x-adminlte-select>
 
         <x-adminlte-input
@@ -166,7 +178,7 @@
           name="salary"
           label="Salário"
           placeholder="p.ex. 2.500,00"
-          value="{{old('salary')}}"
+          value="{{$user->details->salary_formatted}}"
           autocomplete="off"
           fgroup-class="col-md-4"
         >
@@ -189,6 +201,7 @@
         <x-adminlte-input-date
           id="admission_date" name="admission_date" :config="$config" label="Data de Admissão *"
           placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
+          value="{{$user->details->admission_date_formatted}}"
         >
           <x-slot name="prependSlot">
             <div class="input-group-text bg-dark-subtle">
@@ -201,36 +214,13 @@
       <div class="row justify-content-end">
         <x-adminlte-button
           type="submit"
-          label="Cadastrar"
+          label="Editar"
           theme="success"
-          icon="fas fa-save"
+          icon="fas fa-pen"
         />
       </div>
     </form>
   </x-adminlte-card>
-
-  <x-adminlte-modal
-    id="userExists" title="Dados já cadastrados" theme="info"
-    icon="fas fa-exclamation-circle" size="md"
-  >
-    <h3>Já existem dados cadastrados de um usuário apagado.</h3>
-    <p>Alguns dados cadastrados pertencem a <strong id="modal-user-name"></strong>.</p>
-    <p>O que deseja fazer?</p>
-
-    <x-slot name="footerSlot">
-      <form id="form-restore" action="" method="POST">
-        @method('PATCH')
-        @csrf
-        <x-adminlte-button class="mr-auto" theme="success" label="Reativar cadastro" type="submit"/>
-      </form>
-
-      <form id="form-force-delete" action="" method="POST">
-        @method('DELETE')
-        @csrf
-        <x-adminlte-button theme="danger" label="Apagar permanentemente" type="submit"/>
-      </form>
-    </x-slot>
-  </x-adminlte-modal>
 @stop
 
 @section('js')
@@ -262,28 +252,6 @@
             $('#city').val(data.localidade);
           })
           .catch(() => console.error('Erro ao buscar CEP'));
-      });
-    });
-
-    $('form[action="{{ route('users.store') }}"]').on('submit', function (e) {
-      e.preventDefault();
-
-      const form = $(this);
-
-      $.ajax({
-        url: '{{ route('users.store') }}',
-        method: 'POST',
-        data: form.serialize(),
-        success: function (response) {
-          if (response.deleted_user) {
-            $('#modal-user-name').text(response.name);
-            $('#form-restore').attr('action', '/users/' + response.uuid + '/restore');
-            $('#form-force-delete').attr('action', '/users/' + response.uuid);
-            $('#userExists').modal('show');
-          } else {
-            form.off('submit').submit();
-          }
-        },
       });
     });
   </script>

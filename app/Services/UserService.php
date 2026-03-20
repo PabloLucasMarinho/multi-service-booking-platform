@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Password;
 
 class UserService
 {
-  public function createEmployee(array $data): void
+  public function create(array $data): void
   {
     DB::transaction(function () use ($data) {
       $roleUuid = Role::where('name', $data['role'])->value('uuid')
@@ -41,7 +41,7 @@ class UserService
     });
   }
 
-  public function updateEmployee(array $data, User $user): void
+  public function update(array $data, User $user): void
   {
     DB::transaction(function () use ($data, $user) {
       $roleUuid = Role::where('name', $data['role'])->value('uuid');
