@@ -14,13 +14,13 @@ return new class extends Migration {
       $table->uuid()->primary();
       $table->string('name');
       $table->char('initials', 2)->nullable();
-      $table->string('email')->unique();
+      $table->string('email')->unique()->nullable();
       $table->timestamp('email_verified_at')->nullable();
       $table->string('password', 200)->nullable();
       $table->string('color', 7)->nullable();
       $table->foreignUuid('role_uuid')
-            ->constrained('roles', 'uuid')
-            ->cascadeOnDelete();
+        ->constrained('roles', 'uuid')
+        ->cascadeOnDelete();
       $table->rememberToken();
       $table->timestamps();
       $table->softDeletes();

@@ -12,7 +12,7 @@ Auth::routes();
 Route::middleware('auth')->group(function () {
   Route::get('/home', [HomeController::class, 'index'])->name('home');
   Route::resource('users', UserController::class);
-  Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
-  Route::put('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+  Route::delete('users/{uuid}/anonymize', [UserController::class, 'anonymize'])->name('users.anonymize');
+  Route::put('users/{uuid}/restore', [UserController::class, 'restore'])->name('users.restore');
   Route::resource('clients', ClientController::class);
 });

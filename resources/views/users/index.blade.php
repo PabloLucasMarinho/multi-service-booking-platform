@@ -48,7 +48,7 @@
           <a href="{{ route('users.edit', $user) }}" class="btn btn-info mr-2" title="Editar">
             <i class="fas fa-xg fa-pen"></i>
           </a>
-          
+
           <x-adminlte-button
             data-toggle="modal"
             data-target="#removeClientModal"
@@ -78,4 +78,18 @@
       </x-adminlte-modal>
     @endforeach
   </x-adminlte-datatable>
+@stop
+
+@section('js')
+  <script>
+    $(document).ready(function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('success')) {
+        toastr.success(params.get('success'));
+      }
+      if (params.get('restored')) {
+        toastr.success(params.get('restored'));
+      }
+    });
+  </script>
 @stop

@@ -210,24 +210,29 @@
   </x-adminlte-card>
 
   <x-adminlte-modal
-    id="userExists" title="Dados já cadastrados" theme="info"
-    icon="fas fa-exclamation-circle" size="md"
+    id="userExists" title="Usuário já cadastrado" theme="warning"
+    icon="fas fa-exclamation-triangle" size="md" static-backdrop
   >
-    <h3>Já existem dados cadastrados de um usuário apagado.</h3>
-    <p>Alguns dados cadastrados pertencem a <strong id="modal-user-name"></strong>.</p>
-    <p>O que deseja fazer?</p>
+    <div class="text-center py-2">
+      <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+      <h5 class="font-weight-bold">Dados pertencentes a um usuário inativo</h5>
+      <p class="text-muted mb-1">Os dados informados já pertencem ao usuário:</p>
+      <h4 class="font-weight-bold text-dark" id="modal-user-name"></h4>
+      <hr>
+      <p class="text-muted">O que deseja fazer com este cadastro?</p>
+    </div>
 
     <x-slot name="footerSlot">
-      <form id="form-restore" action="" method="POST">
-        @method('PATCH')
+      <form id="form-restore" action="" method="POST" class="mr-auto">
+        @method('PUT')
         @csrf
-        <x-adminlte-button class="mr-auto" theme="success" label="Reativar cadastro" type="submit"/>
+        <x-adminlte-button theme="success" icon="fas fa-user-check" label="Reativar cadastro" type="submit"/>
       </form>
 
       <form id="form-force-delete" action="" method="POST">
         @method('DELETE')
         @csrf
-        <x-adminlte-button theme="danger" label="Apagar permanentemente" type="submit"/>
+        <x-adminlte-button theme="danger" icon="fas fa-trash" label="Apagar permanentemente" type="submit"/>
       </form>
     </x-slot>
   </x-adminlte-modal>
@@ -263,27 +268,76 @@
           })
           .catch(() => console.error('Erro ao buscar CEP'));
       });
-    });
 
-    $('form[action="{{ route('users.store') }}"]').on('submit', function (e) {
-      e.preventDefault();
+      let pendingFormData = null;
 
-      const form = $(this);
+      $('form[action="{{ route('users.store') }}"]').on('submit', function (e) {
+        e.preventDefault();
 
-      $.ajax({
-        url: '{{ route('users.store') }}',
-        method: 'POST',
-        data: form.serialize(),
-        success: function (response) {
-          if (response.deleted_user) {
-            $('#modal-user-name').text(response.name);
-            $('#form-restore').attr('action', '/users/' + response.uuid + '/restore');
-            $('#form-force-delete').attr('action', '/users/' + response.uuid);
-            $('#userExists').modal('show');
-          } else {
-            form.off('submit').submit();
+        const form = $(this);
+
+        $.ajax({
+          url: '{{ route('users.store') }}',
+          method: 'POST',
+          data: form.serialize(),
+          success: function (response) {
+            if (response.deleted_user) {
+              pendingFormData = form.serialize();
+              $('#modal-user-name').text(response.name);
+              $('#form-restore').attr('action', '/users/' + response.uuid + '/restore');
+              $('#form-force-delete').attr('action', '/users/' + response.uuid + '/anonymize');
+              $('#userExists').modal('show');
+            } else {
+              form.off('submit').submit();
+            }
+          },
+        });
+      });
+
+      $('#form-force-delete').on('submit', function (e) {
+        e.preventDefault();
+
+        const anonymizeUrl = $(this).attr('action');
+
+        $.ajax({
+          url: anonymizeUrl,
+          method: 'POST',
+          data: $(this).serialize() + '&_method=DELETE',
+          success: function () {
+            $.ajax({
+              url: '{{ route('users.store') }}',
+              method: 'POST',
+              data: pendingFormData,
+              success: function () {
+                window.location.href = '{{ route('users.index') }}?success=Funcionário+cadastrado+com+sucesso!';
+              },
+              error: function (response) {
+                console.error('Erro ao cadastrar:', response.responseJSON);
+              }
+            });
+          },
+          error: function (response) {
+            console.error('Erro ao anonimizar:', response.responseJSON);
           }
-        },
+        });
+      });
+
+      $('#form-restore').on('submit', function (e) {
+        e.preventDefault();
+
+        const restoreUrl = $(this).attr('action');
+
+        $.ajax({
+          url: restoreUrl,
+          method: 'POST',
+          data: $(this).serialize() + '&_method=PUT',
+          success: function () {
+            window.location.href = '{{ route('users.index') }}?restored=Funcionário+reativado+com+sucesso!';
+          },
+          error: function (response) {
+            console.error('Erro ao restaurar:', response.responseJSON);
+          }
+        });
       });
     });
   </script>

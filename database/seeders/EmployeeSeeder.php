@@ -24,12 +24,12 @@ class EmployeeSeeder extends Seeder
     ]);
 
     $user->details()->create([
-      'document' => '318.664.730-42',
+      'document' => '31866473042',
       'date_of_birth' => '1990-08-05',
-      'phone' => '(21) 95973-6482',
+      'phone' => '21959736482',
       'address' => 'Rua do Funcionário, 456',
       'address_complement' => 'BL1 APT 101',
-      'zip_code' => '67890-321',
+      'zip_code' => '67890321',
       'neighborhood' => 'Realengo',
       'city' => 'Rio de Janeiro',
       'salary' => 1900.00,

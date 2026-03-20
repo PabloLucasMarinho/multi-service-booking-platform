@@ -34,6 +34,17 @@ class User extends Authenticatable
     'remember_token',
   ];
 
+  protected static function booted(): void
+  {
+    static::deleting(function (User $user) {
+      $user->details()->delete();
+    });
+
+    static::restoring(function (User $user) {
+      $user->details()->withTrashed()->restore();
+    });
+  }
+
   protected function casts(): array
   {
     return [

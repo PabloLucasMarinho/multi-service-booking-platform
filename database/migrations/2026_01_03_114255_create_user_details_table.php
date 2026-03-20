@@ -15,7 +15,7 @@ return new class extends Migration {
       $table->foreignUuid('user_uuid')
         ->constrained('users', 'uuid')
         ->cascadeOnDelete();
-      $table->string('document')->unique();
+      $table->string('document')->unique()->nullable();
       $table->date('date_of_birth');
       $table->string('phone', 20);
       $table->string('address', 100);

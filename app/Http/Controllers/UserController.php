@@ -48,34 +48,34 @@ class UserController extends Controller
   {
     Gate::authorize('create', User::class);
 
-    $deletedUser = User::onlyTrashed()
-      ->where(function ($query) use ($request) {
-        $query->where('email', $request->email)
-          ->orWhereHas('details', function ($query) use ($request) {
-            $query->where('document', $request->document);
-          });
-      })
-      ->first();
-
-    if ($deletedUser) {
+    if ($request->deleted_user_data) {
+      $deletedUser = $request->deleted_user_data;
       return response()->json([
         'deleted_user' => true,
         'uuid' => $deletedUser->uuid,
-        'nome' => $deletedUser->name,
+        'name' => $deletedUser->name,
       ]);
     }
 
     try {
       $this->userService->create($request->validated());
 
+      if ($request->wantsJson()) {
+        return response()->json(['success' => true]);
+      }
+
       return redirect()
         ->route('users.index')
-        ->with('success', 'Funcionário cadastrado com sucesso!.');
+        ->with('success', 'Funcionário cadastrado com sucesso!');
 
     } catch (Throwable $e) {
-      Log::error('Erro ao criar funcionário', [
+      Log::error('Erro ao criar funcionário.', [
         'exception' => $e,
       ]);
+
+      if ($request->wantsJson()) {
+        return response()->json(['error' => true], 500);
+      }
 
       return back()
         ->withInput()
@@ -150,25 +150,31 @@ class UserController extends Controller
     return redirect()->route('users.index');
   }
 
-  public function forceDelete(User $user)
+  public function anonymize(string $uuid)
   {
-    Gate::authorize('forceDelete', $user);
+    $user = User::onlyTrashed()->where('uuid', $uuid)->firstOrFail();
 
-    $user->onlyTrashed()->findOrFail($user)->forceDelete();
+    Gate::authorize('delete', $user);
 
-    return redirect()
-      ->route('users.index')
-      ->with('success', 'Funcionário removido permanentemente.');
+    $user->update([
+      'email' => null,
+    ]);
+
+    $user->details()->withTrashed()->update([
+      'document' => null,
+    ]);
+
+    return response()->json(['success' => true]);
   }
 
-  public function restore(User $user)
+  public function restore(string $uuid)
   {
+    $user = User::onlyTrashed()->where('uuid', $uuid)->firstOrFail();
+
     Gate::authorize('restore', $user);
 
-    $user->onlyTrashed()->findOrFail($user)->restore();
+    $user->restore();
 
-    return redirect()
-      ->route('users.index')
-      ->with('success', 'Dados do funcionário restaurados com sucesso.');
+    return response()->json(['success' => true]);
   }
 }

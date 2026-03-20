@@ -24,12 +24,12 @@ class AdminSeeder extends Seeder
     ]);
 
     $user->details()->create([
-      'document' => '376.694.980-21',
+      'document' => '37669498021',
       'date_of_birth' => '1980-04-25',
-      'phone' => '(21) 96482-5973',
+      'phone' => '21964825973',
       'address' => 'Rua do Administrador, 123',
       'address_complement' => 'Casa 2',
-      'zip_code' => '12345-123',
+      'zip_code' => '12345123',
       'neighborhood' => 'Centro',
       'city' => 'Rio de Janeiro',
       'salary' => 12000.00,

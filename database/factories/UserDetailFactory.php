@@ -25,7 +25,7 @@ class UserDetailFactory extends Factory
       'date_of_birth' => fake()->date(),
       'phone' => fake()->phoneNumber(),
       'address' => fake()->streetName(),
-      'zip_code' => fake()->postcode(),
+      'zip_code' => fake('pt_BR')->numerify('########'),
       'neighborhood' => 'Bairro Centro',
       'city' => fake()->city(),
       'salary' => fake()->randomFloat(2, 1500, 5000),

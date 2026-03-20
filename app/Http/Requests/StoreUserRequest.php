@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use App\Rules\Cep;
 use App\Rules\Cpf;
 use App\Rules\DateOfBirth;
@@ -38,6 +39,26 @@ class StoreUserRequest extends BaseFormRequest
     }
   }
 
+  public function withValidator($validator): void
+  {
+    $validator->after(function ($validator) {
+
+      $deletedUser = User::onlyTrashed()
+        ->where(function ($query) {
+          $query->where('email', $this->email)
+            ->orWhereHas('details', function ($query) {
+              $query->withTrashed()->where('document', $this->document);
+            });
+        })
+        ->first();
+
+      if ($deletedUser) {
+        // Guarda o usuário deletado para o controller acessar
+        $this->merge(['deleted_user_data' => $deletedUser]);
+      }
+    });
+  }
+
   public function authorize(): bool
   {
     return true;
@@ -47,9 +68,9 @@ class StoreUserRequest extends BaseFormRequest
   {
     return [
       'name' => 'required|string|max:255',
-      'email' => ['required', 'email', Rule::unique('users', 'email')],
+      'email' => ['required', 'email', Rule::unique('users', 'email')->whereNull('deleted_at')],
 
-      'document' => ['required', new Cpf, Rule::unique('user_details', 'document')],
+      'document' => ['required', new Cpf, Rule::unique('user_details', 'document')->whereNull('deleted_at')],
       'date_of_birth' => ['required', 'date', new DateOfBirth],
       'phone' => ['required', new Phone],
       'address' => 'required|string|max:100',
