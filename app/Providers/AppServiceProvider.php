@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Models\Appointment;
 use App\Models\Client;
+use App\Models\Service;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\ClientPolicy;
+use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -18,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     User::class => UserPolicy::class,
     Client::class => ClientPolicy::class,
     Appointment::class => AppointmentPolicy::class,
+    Service::class => ServicePolicy::class,
   ];
 
   /**
@@ -52,6 +55,13 @@ class AppServiceProvider extends ServiceProvider
         'active' => $isOwnProfile ? [] : ['users', 'users/*'],
         'can' => 'viewAny',
         'model' => User::class,
+      ]);
+
+      $event->menu->add([
+        'text' => 'services',
+        'route' => 'services.index',
+        'icon' => 'fas fa-fw fa-clipboard-list',
+        'active' => ['services', 'services*']
       ]);
 
       $event->menu->add(['header' => 'Configurações da Conta']);

@@ -67,7 +67,6 @@ class UserController extends Controller
       return redirect()
         ->route('users.index')
         ->with('success', 'Funcionário cadastrado com sucesso!');
-
     } catch (Throwable $e) {
       Log::error('Erro ao criar funcionário.', [
         'exception' => $e,

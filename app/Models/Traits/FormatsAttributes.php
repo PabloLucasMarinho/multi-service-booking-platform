@@ -55,6 +55,15 @@ trait FormatsAttributes
     );
   }
 
+  protected function priceFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->price
+        ? number_format((float)$this->price, 2, ',', '.')
+        : null
+    );
+  }
+
   protected function zipCodeFormatted(): Attribute
   {
     return Attribute::make(

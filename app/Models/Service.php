@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Traits\FormatsAttributes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Service extends Model
 {
-  use SoftDeletes;
+  use HasUuids, SoftDeletes, FormatsAttributes;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';
@@ -43,14 +45,5 @@ class Service extends Model
       'service_uuid',
       'category_uuid'
     );
-  }
-
-  protected $casts = [
-    'price' => 'decimal:2',
-  ];
-
-  public function getFormattedPriceAttribute(): string
-  {
-    return number_format($this->price, 2, ',', '.');
   }
 }
