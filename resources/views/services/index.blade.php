@@ -20,8 +20,10 @@
 
 @section('content')
   <x-adminlte-card title="Cadastro de serviços" theme="primary" icon="fas fa-clipboard-list">
-    <form action="{{route('services.store')}}" method="POST">
+    <form id="service-form" action="{{ route('services.store') }}" method="POST">
       @csrf
+      <input type="hidden" id="form-method" name="_method" value="">
+      <input type="hidden" id="service-uuid" value="">
 
       <div class="row">
         <x-adminlte-input
@@ -29,7 +31,7 @@
           name="name"
           label="Nome *"
           placeholder="p.ex. Corte Máquina"
-          value="{{old('name')}}"
+          value="{{ old('name') }}"
           autocomplete="off"
           fgroup-class="col-md-4"
           required
@@ -40,24 +42,30 @@
           name="price"
           label="Preço *"
           placeholder="p.ex. 50,00"
-          value="{{old('price')}}"
+          value="{{ old('price') }}"
           autocomplete="off"
           fgroup-class="col-md-4"
           required
         >
           <x-slot name="prependSlot">
-            <div class="input-group-text">
-              R$
-            </div>
+            <div class="input-group-text">R$</div>
           </x-slot>
         </x-adminlte-input>
 
         <x-tag-input id="categories" label="Categorias" placeholder="Nova categoria..." col-size="4"/>
       </div>
 
-
       <div class="row justify-content-end">
         <x-adminlte-button
+          id="btn-cancel-edit"
+          type="button"
+          label="Cancelar"
+          theme="secondary"
+          icon="fas fa-times"
+          class="mr-2 d-none"
+        />
+        <x-adminlte-button
+          id="btn-submit"
           type="submit"
           label="Cadastrar"
           theme="success"
@@ -70,52 +78,62 @@
   <div class="mb-2">
     @php
       $heads = [
-                'Nome',
-                'Preço',
-                'Categorias',
-                ['label' => 'Ações', 'no-export' => true, 'width' => 5],
+        'Nome',
+        'Preço',
+        'Categorias',
+        ['label' => 'Ações', 'no-export' => true, 'width' => 5],
       ];
 
       $config = [
-        'language' => [ 'url' => '//cdn.datatables.net/plug-ins/1.10.19/i18n/Portuguese-Brasil.json' ],
+        'language' => ['url' => '//cdn.datatables.net/plug-ins/1.10.19/i18n/Portuguese-Brasil.json'],
       ];
     @endphp
 
     <x-adminlte-datatable id="servicesTable" :heads="$heads" :config="$config" hoverable striped>
       @foreach($services as $service)
         <tr>
-          <td>{{$service->name}}</td>
-          <td>R${{$service->price_formatted}}</td>
+          <td>{{ $service->name }}</td>
+          <td>R${{ $service->price_formatted }}</td>
           <td>
             @foreach($service->categories as $category)
               <span class="badge badge-primary mr-1 mb-1" data-slug="{{ $category->slug }}">
                 {{ $category->name }}
                 <i class="fas fa-times ml-1 delete-category" style="cursor:pointer"></i>
-            </span>
+              </span>
             @endforeach
           </td>
 
           <td class="d-flex">
-            <a href="{{ route('services.edit', $service) }}" class="btn btn-info mr-2">Editar</a>
+            <button
+              class="btn btn-info mr-2 btn-edit-service"
+              type="button"
+              data-uuid="{{ $service->uuid }}"
+              data-name="{{ $service->name }}"
+              data-price="{{ $service->price_formatted }}"
+              title="Editar"
+            >
+              <i class="fas fa-xg fa-pen"></i>
+            </button>
 
             <x-adminlte-button
               data-toggle="modal"
-              data-target="#removeServiceModal"
+              data-target="#removeServiceModal-{{ $service->uuid }}"
               theme="danger"
-              label="Apagar"
+              icon="fas fa-xg fa-trash-alt"
+              title="Apagar"
             />
           </td>
         </tr>
 
         <x-adminlte-modal
-          id="removeServiceModal" title="Apagar Serviço" theme="danger"
+          id="removeServiceModal-{{ $service->uuid }}" title="Apagar Serviço" theme="danger"
           icon="fas fa-trash" size="md"
         >
-          <p>Tem certeza que quer apagar os dados de <strong>{{$service->name}}</strong>?</p>
+          <p>Tem certeza que quer apagar o serviço <strong>{{ $service->name }}</strong>?</p>
           <strong class="text-danger">Essa ação é permanente e não poderá ser desfeita!</strong>
 
           <x-slot name="footerSlot">
-            <form action="{{route('services.destroy', $service)}}" method="POST">
+            <form action="{{ route('services.destroy', $service) }}" method="POST">
               @method('DELETE')
               @csrf
               <x-adminlte-button class="mr-auto" theme="danger" label="Sim" type="submit"/>
@@ -150,21 +168,18 @@
         const list = $(`#${targetId}-list`);
         const hidden = $(`#${targetId}-hidden`);
 
-        // Evita duplicatas visuais
         if (hidden.find(`input[value="${name}"]`).length) {
           toastr.warning('Tag já adicionada.');
           return;
         }
 
-        // Adiciona badge visual
         list.append(`
-        <span class="badge badge-primary mr-1 mb-1">
+          <span class="badge badge-primary mr-1 mb-1">
             ${name}
             <i class="fas fa-times ml-1 remove-tag" style="cursor:pointer" data-name="${name}" data-target="${targetId}"></i>
-        </span>
-    `);
+          </span>
+        `);
 
-        // Adiciona campo hidden para enviar no form
         hidden.append(`<input type="hidden" name="${targetId}[]" value="${name}">`);
 
         input.val('');
@@ -176,6 +191,43 @@
 
         $(this).closest('.badge').remove();
         $(`#${targetId}-hidden input[value="${name}"]`).remove();
+      });
+
+      $(document).on('click', '.btn-edit-service', function () {
+        const uuid = $(this).data('uuid');
+        const name = $(this).data('name');
+        const price = $(this).data('price');
+
+        $('#service-form').attr('action', `/services/${uuid}`);
+        $('#form-method').val('PUT');
+        $('#service-uuid').val(uuid);
+
+        $('#name').val(name);
+        $('#price').val(price);
+
+        $('#btn-submit').text('Atualizar');
+        $('#btn-cancel-edit').removeClass('d-none');
+
+        $('html, body').animate({scrollTop: 0}, 500);
+      });
+
+      $('#btn-cancel-edit').on('click', function () {
+        $('#service-form').attr('action', '{{ route('services.store') }}');
+        $('#form-method').val('');
+        $('#service-uuid').val('');
+        $('#name').val('');
+        $('#price').val('');
+        $('#categories-list').empty();
+        $('#categories-hidden').empty();
+        $('#btn-submit').text('Cadastrar');
+        $('#btn-cancel-edit').addClass('d-none');
+      });
+
+      $('#categories-input').on('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          $('.btn-add-tag').trigger('click');
+        }
       });
     });
   </script>

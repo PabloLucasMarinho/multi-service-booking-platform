@@ -101,7 +101,39 @@ class ServiceController extends Controller
    */
   public function update(UpdateServiceRequest $request, Service $service)
   {
-    //
+    Gate::authorize('update', $service);
+
+    try {
+      $service->update([
+        'name' => $request->name,
+        'price' => $request->price,
+      ]);
+
+      if ($request->categories) {
+        $categoryUuids = collect($request->categories)->map(function ($name) {
+          $name = Str::title(trim($name));
+          return Category::firstOrCreate(
+            ['slug' => Str::slug($name)],
+            ['name' => $name]
+          )->uuid;
+        });
+
+        $service->categories()->sync($categoryUuids);
+      } else {
+        $service->categories()->detach();
+      }
+
+      return redirect()
+        ->route('services.index')
+        ->with('success', 'Serviço atualizado com sucesso!');
+
+    } catch (Throwable $e) {
+      Log::error('Erro ao atualizar serviço.', ['exception' => $e]);
+
+      return back()
+        ->withInput()
+        ->with('error', 'Erro ao atualizar serviço. Tente novamente.');
+    }
   }
 
   /**
@@ -109,6 +141,12 @@ class ServiceController extends Controller
    */
   public function destroy(Service $service)
   {
-    //
+    Gate::authorize('delete', $service);
+
+    $service->delete();
+
+    return redirect()
+      ->route('services.index')
+      ->with('success', 'Serviço apagado com sucesso!');
   }
 }
