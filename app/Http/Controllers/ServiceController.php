@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ServiceController extends Controller
@@ -53,7 +54,16 @@ class ServiceController extends Controller
       ]);
 
       if ($request->categories) {
-        $service->categories()->attach($request->categories);
+        $categoryUuids = collect($request->categories)->map(function ($name) {
+          $name = Str::title(trim($name));
+
+          return Category::firstOrCreate(
+            ['slug' => Str::slug($name)],
+            ['name' => $name]
+          )->uuid;
+        });
+
+        $service->categories()->attach($categoryUuids);
       }
 
       return redirect()

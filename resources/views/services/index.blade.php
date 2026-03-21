@@ -28,7 +28,7 @@
           id="name"
           name="name"
           label="Nome *"
-          placeholder="p.ex. João da Silva"
+          placeholder="p.ex. Corte Máquina"
           value="{{old('name')}}"
           autocomplete="off"
           fgroup-class="col-md-4"
@@ -52,27 +52,9 @@
           </x-slot>
         </x-adminlte-input>
 
-        <div class="col-md-4">
-          <label>Categorias</label>
-          <div class="input-group mb-2">
-            <input type="text" id="new-category" class="form-control" placeholder="Nova categoria...">
-            <div class="input-group-append">
-              <button type="button" id="btn-add-category" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-              </button>
-            </div>
-          </div>
-
-          <div id="category-list" class="mt-2">
-            @foreach($categories as $category)
-              <span class="badge badge-primary mr-1 mb-1" data-slug="{{ $category->slug }}">
-                {{ $category->name }}
-                <i class="fas fa-times ml-1 delete-category" style="cursor:pointer"></i>
-            </span>
-            @endforeach
-          </div>
-        </div>
+        <x-tag-input id="categories" label="Categorias" placeholder="Nova categoria..." col-size="4"/>
       </div>
+
 
       <div class="row justify-content-end">
         <x-adminlte-button
@@ -159,49 +141,41 @@
         rightAlign: false,
       });
 
-      $('#btn-add-category').on('click', function () {
-        const name = $('#new-category').val().trim();
+      $(document).on('click', '.btn-add-tag', function () {
+        const targetId = $(this).data('target');
+        const input = $(`#${targetId}-input`);
+        const name = input.val().trim();
         if (!name) return;
 
-        $.ajax({
-          url: '{{ route('categories.store') }}',
-          method: 'POST',
-          data: {_token: '{{ csrf_token() }}', name: name},
-          success: function (category) {
-            // Adiciona no select
-            $('#categories').append(
-              `<option value="${category.uuid}" selected>${category.name}</option>`
-            );
-            // Adiciona no badge list
-            $('#category-list').append(`
-                <span class="badge badge-primary mr-1 mb-1" data-slug="${category.slug}">
-                    ${category.name}
-                    <i class="fas fa-times ml-1 delete-category" style="cursor:pointer"></i>
-                </span>
-            `);
-            $('#new-category').val('');
-          },
-          error: function () {
-            toastr.error('Categoria já existe ou nome inválido.');
-          }
-        });
+        const list = $(`#${targetId}-list`);
+        const hidden = $(`#${targetId}-hidden`);
+
+        // Evita duplicatas visuais
+        if (hidden.find(`input[value="${name}"]`).length) {
+          toastr.warning('Tag já adicionada.');
+          return;
+        }
+
+        // Adiciona badge visual
+        list.append(`
+        <span class="badge badge-primary mr-1 mb-1">
+            ${name}
+            <i class="fas fa-times ml-1 remove-tag" style="cursor:pointer" data-name="${name}" data-target="${targetId}"></i>
+        </span>
+    `);
+
+        // Adiciona campo hidden para enviar no form
+        hidden.append(`<input type="hidden" name="${targetId}[]" value="${name}">`);
+
+        input.val('');
       });
 
-      $(document).on('click', '.delete-category', function () {
-        const badge = $(this).closest('[data-slug]');
-        const slug = badge.data('slug');
+      $(document).on('click', '.remove-tag', function () {
+        const name = $(this).data('name');
+        const targetId = $(this).data('target');
 
-        $.ajax({
-          url: `/categories/${slug}`,
-          method: 'POST',
-          data: {_token: '{{ csrf_token() }}', _method: 'DELETE'},
-          success: function () {
-            $(`[data-slug="${slug}"]`).remove();
-            $(`#categories option`).filter(function () {
-              return $(this).text() === badge.text().trim();
-            }).remove();
-          }
-        });
+        $(this).closest('.badge').remove();
+        $(`#${targetId}-hidden input[value="${name}"]`).remove();
       });
     });
   </script>
