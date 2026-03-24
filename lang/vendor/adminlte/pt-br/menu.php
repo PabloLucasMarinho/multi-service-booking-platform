@@ -22,4 +22,5 @@ return [
   'appointments' => 'Agendamentos',
   'services' => 'Serviços',
   'password' => 'Alterar Senha',
+  'promotions' => 'Promoções'
 ];

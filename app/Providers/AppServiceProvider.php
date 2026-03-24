@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Appointment;
 use App\Models\Client;
+use App\Models\Promotion;
 use App\Models\Service;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
@@ -62,6 +63,15 @@ class AppServiceProvider extends ServiceProvider
         'route' => 'services.index',
         'icon' => 'fas fa-fw fa-clipboard-list',
         'active' => ['services', 'services*']
+      ]);
+
+      $event->menu->add([
+        'text' => 'promotions',
+        'route' => 'promotions.index',
+        'icon' => 'fas fa-fw fa-percentage',
+        'active' => ['promotions', 'promotions*'],
+        'can' => 'viewAny',
+        'model' => Promotion::class,
       ]);
 
       $event->menu->add(['header' => 'Configurações da Conta']);

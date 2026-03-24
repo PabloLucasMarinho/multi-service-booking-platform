@@ -46,6 +46,25 @@ trait FormatsAttributes
     );
   }
 
+  protected function startsAtFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->formatDate($this->starts_at)
+    );
+  }
+
+  protected function endsAtFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->formatDate($this->ends_at)
+    );
+  }
+
+  protected function activeFormatted(): Attribute
+  {
+    return Attribute::make(get: fn() => $this->active === true ? 'Ativo' : 'Inativo');
+  }
+
   protected function salaryFormatted(): Attribute
   {
     return Attribute::make(

@@ -96,9 +96,8 @@
           <td>R${{ $service->price_formatted }}</td>
           <td>
             @foreach($service->categories as $category)
-              <span class="badge badge-primary mr-1 mb-1" data-slug="{{ $category->slug }}">
+              <span class="badge badge-primary mr-1 mb-1">
                 {{ $category->name }}
-                <i class="fas fa-times ml-1 delete-category" style="cursor:pointer"></i>
               </span>
             @endforeach
           </td>
@@ -110,6 +109,7 @@
               data-uuid="{{ $service->uuid }}"
               data-name="{{ $service->name }}"
               data-price="{{ $service->price_formatted }}"
+              data-categories="{{ $service->categories->pluck('name')->toJson() }}"
               title="Editar"
             >
               <i class="fas fa-xg fa-pen"></i>
@@ -176,7 +176,9 @@
         list.append(`
           <span class="badge badge-primary mr-1 mb-1">
             ${name}
-            <i class="fas fa-times ml-1 remove-tag" style="cursor:pointer" data-name="${name}" data-target="${targetId}"></i>
+            <i class="fas fa-times ml-1 remove-tag"
+                style="cursor:pointer" data-name="${name}" data-target="${targetId}"
+            ></i>
           </span>
         `);
 
@@ -197,6 +199,23 @@
         const uuid = $(this).data('uuid');
         const name = $(this).data('name');
         const price = $(this).data('price');
+        // Limpa as categorias atuais
+        $('#categories-list').empty();
+        $('#categories-hidden').empty();
+
+        // Popula com as categorias do serviço
+        const categories = JSON.parse($(this).attr('data-categories'));
+        categories.forEach(function (name) {
+          $('#categories-list').append(`
+            <span class="badge badge-primary mr-1 mb-1">
+                ${name}
+                <i class="fas fa-times ml-1 remove-tag"
+                    style="cursor:pointer" data-name="${name}" data-target="categories"
+                ></i>
+            </span>
+          `);
+          $('#categories-hidden').append(`<input type="hidden" name="categories[]" value="${name}">`);
+        });
 
         $('#service-form').attr('action', `/services/${uuid}`);
         $('#form-method').val('PUT');

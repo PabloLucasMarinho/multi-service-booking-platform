@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Enums\DiscountType;
+use App\Models\Traits\FormatsAttributes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Promotion extends Model
 {
-  use SoftDeletes;
+  use HasUuids, SoftDeletes, FormatsAttributes;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';
@@ -25,13 +27,13 @@ class Promotion extends Model
     'active'
   ];
 
-  public function services(): BelongsToMany
+  public function categories(): BelongsToMany
   {
     return $this->belongsToMany(
-      Service::class,
-      'promotion_service',
+      Category::class,
+      'promotion_category',
       'promotion_uuid',
-      'service_uuid'
+      'category_uuid'
     );
   }
 
@@ -69,9 +71,9 @@ class Promotion extends Model
 
   public function isGlobal(): bool
   {
-    return !$this->relationLoaded('services')
-      ? !$this->services()->exists()
-      : $this->services->isEmpty();
+    return !$this->relationLoaded('categories')
+      ? !$this->categories()->exists()
+      : $this->categories->isEmpty();
   }
 
   public function scopeActive(Builder $query): Builder

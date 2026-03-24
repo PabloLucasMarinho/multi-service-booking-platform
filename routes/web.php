@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +25,6 @@ Route::middleware('auth')->group(function () {
 
   Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
   Route::delete('categories/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+  Route::resource('promotions', PromotionController::class);
 });

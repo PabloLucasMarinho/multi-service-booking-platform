@@ -10,14 +10,14 @@ return new class extends Migration {
    */
   public function up(): void
   {
-    Schema::create('promotion_service', function (Blueprint $table) {
+    Schema::create('promotion_category', function (Blueprint $table) {
       $table->foreignUuid('promotion_uuid')
         ->constrained('promotions', 'uuid')
         ->cascadeOnDelete();
-      $table->foreignUuid('service_uuid')
-        ->constrained('services', 'uuid')
+      $table->foreignUuid('category_uuid')
+        ->constrained('categories', 'uuid')
         ->cascadeOnDelete();
-      $table->primary(['promotion_uuid', 'service_uuid']);
+      $table->primary(['promotion_uuid', 'category_uuid']);
     });
   }
 
@@ -26,6 +26,6 @@ return new class extends Migration {
    */
   public function down(): void
   {
-    Schema::dropIfExists('promotion_service');
+    Schema::dropIfExists('promotion_category');
   }
 };

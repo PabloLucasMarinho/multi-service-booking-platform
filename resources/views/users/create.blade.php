@@ -182,7 +182,6 @@
             'format' => 'L',
             'locale' => 'pt-br',
             'widgetPositioning' => ['horizontal' => 'auto', 'vertical' => 'top'],
-            'daysOfWeekDisabled' => [0, 6],
             'dayViewHeaderFormat' => 'MMM YYYY',
           ];
         @endphp
