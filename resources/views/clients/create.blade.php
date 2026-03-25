@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@section('plugins.Tempus', true)
+@section('plugins.InputMask', true)
+
 @section('subtitle', 'Cadastrar Cliente')
 @section('content_header')
   <h1>Cadastrar Cliente</h1>
@@ -38,36 +41,58 @@
           required
         />
 
-        <x-adminlte-input
-          id="date_of_birth"
-          name="date_of_birth"
-          label="Data de Nascimento"
-          placeholder="Digite o data de nascimento do cliente"
-          value="{{old('date_of_birth')}}"
-          autocomplete="bday"
-          fgroup-class="col-md-4"
-          required
-        />
+        @php
+          $config = [
+            'format' => 'L',
+            'locale' => 'pt-br',
+            'widgetPositioning' => ['horizontal' => 'auto', 'vertical' => 'bottom'],
+            'daysOfWeekDisabled' => [0, 6],
+            'dayViewHeaderFormat' => 'MMM YYYY',
+            'viewMode' => 'years'
+          ];
+        @endphp
+        <x-adminlte-input-date
+          id="date_of_birth" name="date_of_birth" :config="$config" label="Data de Nascimento *"
+          placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
+        >
+          <x-slot name="prependSlot">
+            <div class="input-group-text bg-dark-subtle">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+          </x-slot>
+        </x-adminlte-input-date>
 
         <x-adminlte-input
           id="email"
           name="email"
           label="E-mail"
-          placeholder="Digite o e-mail do cliente"
+          placeholder="p.ex. joao@gmail.com"
           value="{{old('email')}}"
           autocomplete="email"
           fgroup-class="col-md-4"
-        />
+        >
+          <x-slot name="prependSlot">
+            <div class="input-group-text">
+              <i class="fas fa-at"></i>
+            </div>
+          </x-slot>
+        </x-adminlte-input>
 
         <x-adminlte-input
           id="phone"
           name="phone"
           label="Telefone"
-          placeholder="Digite o telefone do cliente"
+          placeholder="p.ex. (21)91234-5678"
           value="{{old('phone')}}"
-          autocomplete="tel-local"
+          autocomplete="tel-national"
           fgroup-class="col-md-4"
-        />
+        >
+          <x-slot name="prependSlot">
+            <div class="input-group-text">
+              <i class="fas fa-phone-alt"></i>
+            </div>
+          </x-slot>
+        </x-adminlte-input>
       </div>
 
       <div class="row justify-content-end">
@@ -83,27 +108,10 @@
 @stop
 
 @section('js')
-
   <script>
-
     $(document).ready(function () {
-
-      $('#phone').inputmask('(99) 99999-9999');
-
-    });
-
-    $(document).ready(function () {
-
+      $('#phone').inputmask('(99)99999-9999');
       $('#document').inputmask('999.999.999-99');
-
     });
-
-    $(document).ready(function () {
-
-      $('#date_of_birth').inputmask('99/99/9999');
-
-    });
-
   </script>
-
 @stop

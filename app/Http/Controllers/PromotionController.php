@@ -77,7 +77,11 @@ class PromotionController extends Controller
    */
   public function edit(Promotion $promotion)
   {
-    //
+    Gate::authorize('update', $promotion);
+
+    $promotion->load('categories');
+
+    return view('promotions.edit', compact('promotion'));
   }
 
   /**
@@ -85,7 +89,23 @@ class PromotionController extends Controller
    */
   public function update(UpdatePromotionRequest $request, Promotion $promotion)
   {
-    //
+    Gate::authorize('update', Promotion::class);
+
+    try {
+      $this->promotionService->update($request->validated(), $promotion);
+
+      return redirect()
+        ->route('promotions.index')
+        ->with('success', 'Promoção atualizada com sucesso!');
+    } catch (Throwable $e) {
+      Log::error('Erro ao ao atualizar promoção.', [
+        'exception' => $e,
+      ]);
+
+      return back()
+        ->withInput()
+        ->with('error', 'Erro ao atualizar funcionário. Tente novamente.');
+    }
   }
 
   /**
@@ -93,6 +113,10 @@ class PromotionController extends Controller
    */
   public function destroy(Promotion $promotion)
   {
-    //
+    Gate::authorize('delete', $promotion);
+
+    $promotion->delete();
+
+    return redirect()->route('promotions.index');
   }
 }

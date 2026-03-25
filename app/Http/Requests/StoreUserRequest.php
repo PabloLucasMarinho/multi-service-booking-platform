@@ -30,7 +30,7 @@ class StoreUserRequest extends BaseFormRequest
       if (is_string($value) && preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $value)) {
         try {
           $this->merge([
-            $field => Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d')
+            $field => Carbon::createFromFormat('d/m/Y', $value)->startOfDay()->format('Y-m-d H:i:s')
           ]);
         } catch (\Throwable) {
           // deixa a validação falhar depois
@@ -71,7 +71,12 @@ class StoreUserRequest extends BaseFormRequest
       'email' => ['required', 'email', Rule::unique('users', 'email')->whereNull('deleted_at')],
 
       'document' => ['required', new Cpf, Rule::unique('user_details', 'document')->whereNull('deleted_at')],
-      'date_of_birth' => ['required', 'date', new DateOfBirth],
+      'date_of_birth' => [
+        'required',
+        'date',
+        'before:today',
+        'after:' . now()->subYears(120)->startOfDay()->format('Y-m-d H:i:s'),
+      ],
       'phone' => ['required', new Phone],
       'address' => 'required|string|max:100',
       'address_complement' => 'nullable|string|max:50',

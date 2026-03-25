@@ -32,6 +32,11 @@ class UserDetail extends Model
     'admission_date',
   ];
 
+  protected $casts = [
+    'date_of_birth' => 'datetime',
+    'admission_date' => 'datetime',
+  ];
+
   public function user(): BelongsTo
   {
     return $this->belongsTo(User::class, 'user_uuid', 'uuid');

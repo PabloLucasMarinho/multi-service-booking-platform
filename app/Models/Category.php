@@ -24,6 +24,10 @@ class Category extends Model
         $category->uuid = (string)Str::uuid();
       }
 
+      if ($category->name) {
+        $category->name = self::removeAccents($category->name);
+      }
+
       if (!$category->slug && $category->name) {
         $category->slug = Str::slug($category->name);
       }
@@ -40,8 +44,23 @@ class Category extends Model
     );
   }
 
+  public function promotions(): BelongsToMany
+  {
+    return $this->belongsToMany(
+      Promotion::class,
+      'promotion_category',
+      'category_uuid',
+      'promotion_uuid'
+    );
+  }
+
   public function getRouteKeyName(): string
   {
     return 'slug';
+  }
+
+  private static function removeAccents(string $value): string
+  {
+    return iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
   }
 }

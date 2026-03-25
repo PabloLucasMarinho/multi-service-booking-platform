@@ -2,6 +2,7 @@
 
 namespace App\Models\Traits;
 
+use App\Enums\DiscountType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -65,6 +66,11 @@ trait FormatsAttributes
     return Attribute::make(get: fn() => $this->active === true ? 'Ativo' : 'Inativo');
   }
 
+  protected function typeFormatted(): Attribute
+  {
+    return Attribute::make(get: fn() => $this->type === DiscountType::Fixed ? 'Fixo' : 'Porcentagem');
+  }
+
   protected function salaryFormatted(): Attribute
   {
     return Attribute::make(
@@ -80,6 +86,21 @@ trait FormatsAttributes
       get: fn() => $this->price
         ? number_format((float)$this->price, 2, ',', '.')
         : null
+    );
+  }
+
+  protected function valueFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: function () {
+        if (!$this->value) {
+          return null;
+        }
+
+        return $this->type === DiscountType::Percentage
+          ? (float)$this->value . '%'
+          : 'R$' . number_format((float)$this->value, 2, ',', '.');
+      }
     );
   }
 

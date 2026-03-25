@@ -28,16 +28,6 @@ class Service extends Model
     return $this->hasMany(AppointmentService::class, 'service_uuid', 'uuid');
   }
 
-  public function promotions(): BelongsToMany
-  {
-    return $this->belongsToMany(
-      Promotion::class,
-      'promotion_service',
-      'service_uuid',
-      'promotion_uuid'
-    );
-  }
-
   public function categories(): BelongsToMany
   {
     return $this->belongsToMany(

@@ -3,20 +3,21 @@
 @section('plugins.Tempus', true)
 @section('plugins.InputMask', true)
 
-@section('subtitle', 'Cadastrar Promoção')
+@section('subtitle', 'Atualizar Promoção')
 @section('content_header')
-  <h1>Cadastrar Promoção</h1>
+  <h1>Atualizar Promoção</h1>
 
   <x-breadcrumb :items="[
     ['label' => 'Dashboard', 'url' => route('home')],
     ['label' => 'Promoção', 'url' => route('promotions.index')],
-    ['label' => 'Cadastrar Promoção'],
+    ['label' => 'Atualizar Promoção'],
   ]"/>
 @stop
 
 @section('content')
-  <x-adminlte-card title="Cadastro de Promoção" theme="primary" icon="fas fa-percentage">
-    <form action="{{route('promotions.store')}}" method="POST">
+  <x-adminlte-card title="Edição de Promoção" theme="primary" icon="fas fa-percentage">
+    <form action="{{route('promotions.update', $promotion)}}" method="POST">
+      @method('PUT')
       @csrf
 
       <div class="row">
@@ -24,7 +25,7 @@
           name="name"
           label="Nome *"
           placeholder="Dê um nome a promoção"
-          value="{{old('name')}}"
+          value="{{$promotion->name}}"
           autocomplete="on"
           fgroup-class="col-md-4"
           required
@@ -48,7 +49,7 @@
               <i class="fas fa-tag"></i>
             </div>
           </x-slot>
-          <x-adminlte-options :options="$discountTypes" :selected="[old('type', 'percentage')]"/>
+          <x-adminlte-options :options="$discountTypes" :selected="[$promotion->type]"/>
         </x-adminlte-select>
 
         <x-adminlte-input
@@ -56,7 +57,7 @@
           name="value"
           label="Valor *"
           placeholder="Informe o valor"
-          value="{{ old('value') }}"
+          value="{{ $promotion->value_formatted }}"
           autocomplete="off"
           fgroup-class="col-md-4"
           required
@@ -79,7 +80,7 @@
         <x-adminlte-input-date
           id="starts_at" name="starts_at" :config="$startsAtConfig" label="Início *" required
           placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
-          value="{{old('starts_at')}}"
+          value="{{$promotion->starts_at_formatted}}"
         >
           <x-slot name="prependSlot">
             <div class="input-group-text bg-dark-subtle">
@@ -99,7 +100,7 @@
         <x-adminlte-input-date
           id="ends_at" name="ends_at" :config="$endsAtConfig" label="Término *" required
           placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
-          value="{{old('ends_at')}}"
+          value="{{$promotion->ends_at_formatted}}"
         >
           <x-slot name="prependSlot">
             <div class="input-group-text bg-dark-subtle">
@@ -117,7 +118,7 @@
       <div class="row justify-content-end">
         <x-adminlte-button
           type="submit"
-          label="Cadastrar"
+          label="Editar"
           theme="success"
           icon="fas fa-save"
         />
@@ -197,6 +198,28 @@
           e.preventDefault();
           $('.btn-add-tag').trigger('click');
         }
+      });
+
+      // Popula categorias existentes da promoção
+      const existingCategories = @json($promotion->categories->pluck('name'));
+      existingCategories.forEach(function (name) {
+        $('#categories-list').append(`
+          <span class="badge badge-primary mr-1 mb-1">
+            ${name}
+            <i class="fas fa-times ml-1 remove-tag"
+              style="cursor:pointer" data-name="${name}" data-target="categories"
+            ></i>
+          </span>
+        `);
+        $('#categories-hidden').append(`<input type="hidden" name="categories[]" value="${name}">`);
+      });
+
+      $(document).on('click', '.remove-tag', function () {
+        const name = $(this).data('name');
+        const targetId = $(this).data('target');
+
+        $(this).closest('.badge').remove();
+        $(`#${targetId}-hidden input[value="${name}"]`).remove();
       });
     });
   </script>

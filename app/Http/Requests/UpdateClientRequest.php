@@ -27,7 +27,7 @@ class UpdateClientRequest extends BaseFormRequest
           $this->merge(['date_of_birth' => Carbon::createFromFormat(
             'd/m/Y',
             $dateOfBirth
-          )->format('Y-m-d')
+          )->startOfDay()->format('Y-m-d H:i:s')
           ]);
         }
       } catch (\Throwable) {
@@ -50,7 +50,12 @@ class UpdateClientRequest extends BaseFormRequest
     return [
       'name' => 'required|string|min:2|max:255',
       'document' => ['required', new Cpf, Rule::unique('clients', 'document')->ignore($client)],
-      'date_of_birth' => ['required', 'date', new DateOfBirth],
+      'date_of_birth' => [
+        'required',
+        'date',
+        'before:today',
+        'after:' . now()->subYears(120)->startOfDay()->format('Y-m-d H:i:s'),
+      ],
       'email' => ['nullable', 'email', 'required_without:phone', Rule::unique('clients', 'email')->ignore($client)],
       'phone' => ['nullable', 'required_without:email', new Phone]
     ];

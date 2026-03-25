@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\ClientPolicy;
+use App\Policies\PromotionPolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Event;
@@ -22,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     Client::class => ClientPolicy::class,
     Appointment::class => AppointmentPolicy::class,
     Service::class => ServicePolicy::class,
+    Promotion::class => PromotionPolicy::class,
   ];
 
   /**
@@ -62,7 +64,9 @@ class AppServiceProvider extends ServiceProvider
         'text' => 'services',
         'route' => 'services.index',
         'icon' => 'fas fa-fw fa-clipboard-list',
-        'active' => ['services', 'services*']
+        'active' => ['services', 'services*'],
+        'can' => 'viewAny',
+        'model' => Service::class,
       ]);
 
       $event->menu->add([

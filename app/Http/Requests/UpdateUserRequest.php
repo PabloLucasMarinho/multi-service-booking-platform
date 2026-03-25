@@ -6,12 +6,38 @@ use App\Rules\Cep;
 use App\Rules\Cpf;
 use App\Rules\DateOfBirth;
 use App\Rules\Phone;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends BaseFormRequest
 {
+  protected array $sanitize = [
+    'name' => 'string',
+    'document' => 'digits',
+    'zip_code' => 'digits',
+    'phone' => 'digits',
+    'email' => 'lowercase',
+    'salary' => 'currency',
+  ];
+
+  protected function prepareForValidation(): void
+  {
+    parent::prepareForValidation();
+
+    foreach (['date_of_birth', 'admission_date'] as $field) {
+      $value = $this->input($field);
+      if (is_string($value) && preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $value)) {
+        try {
+          $this->merge([
+            $field => Carbon::createFromFormat('d/m/Y', $value)->startOfDay()->format('Y-m-d H:i:s')
+          ]);
+        } catch (\Throwable) {
+          // deixa a validação falhar depois
+        }
+      }
+    }
+  }
+
   /**
    * Determine if the user is authorized to make this request.
    */
@@ -29,7 +55,12 @@ class UpdateUserRequest extends FormRequest
       'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user)],
 
       'document' => ['required', new Cpf, Rule::unique('user_details', 'document')->ignore($user->details)],
-      'date_of_birth' => ['required', new DateOfBirth],
+      'date_of_birth' => [
+        'required',
+        'date',
+        'before:today',
+        'after:' . now()->subYears(120)->startOfDay()->format('Y-m-d H:i:s'),
+      ],
       'phone' => ['required', new Phone],
       'address' => 'required|string|max:100',
       'address_complement' => 'nullable|string|max:50',
@@ -75,42 +106,5 @@ class UpdateUserRequest extends FormRequest
       'admission_date' => 'data de admissão',
       'role' => 'função',
     ];
-  }
-
-  protected function prepareForValidation(): void
-  {
-    $salary = $this->input('salary');
-
-    if ($salary) {
-      $salary_correct = str_replace('.', '', $salary);
-      $salary_correct = str_replace(',', '.', $salary_correct);
-
-      $this->merge([
-        'salary' => $salary_correct
-      ]);
-    }
-
-    $this->normalizeDate('date_of_birth');
-    $this->normalizeDate('admission_date');
-  }
-
-  private function normalizeDate(string $field, string $format = 'd/m/Y'): void
-  {
-    $value = $this->input($field);
-
-    if (!is_string($value)) {
-      return;
-    }
-
-    try {
-      if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $value)) {
-        $this->merge([
-          $field => Carbon::createFromFormat($format, $value)
-            ->format('Y-m-d'),
-        ]);
-      }
-    } catch (\Throwable) {
-      // Não faz nada, a validação vai falhar depois
-    }
   }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Rules\Cpf;
-use App\Rules\DateOfBirth;
 use App\Rules\Phone;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -29,7 +28,7 @@ class StoreClientRequest extends BaseFormRequest
           $this->merge(['date_of_birth' => Carbon::createFromFormat(
             'd/m/Y',
             $dateOfBirth
-          )->format('Y-m-d')
+          )->startOfDay()->format('Y-m-d H:i:s')
           ]);
         }
       } catch (\Throwable) {
@@ -48,7 +47,12 @@ class StoreClientRequest extends BaseFormRequest
     return [
       'name' => 'required|string|min:2|max:255',
       'document' => ['required', new Cpf, Rule::unique('clients', 'document')],
-      'date_of_birth' => ['required', 'date', new DateOfBirth],
+      'date_of_birth' => [
+        'required',
+        'date',
+        'before:today',
+        'after:' . now()->subYears(120)->startOfDay()->format('Y-m-d H:i:s'),
+      ],
       'email' => ['nullable', 'email', 'required_without:phone', Rule::unique('clients', 'email')],
       'phone' => ['nullable', new Phone, 'required_without:email'],
     ];

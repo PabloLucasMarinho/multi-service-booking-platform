@@ -24,7 +24,6 @@ class Promotion extends Model
     'value',
     'starts_at',
     'ends_at',
-    'active'
   ];
 
   public function categories(): BelongsToMany
@@ -42,31 +41,19 @@ class Promotion extends Model
     'value' => 'decimal:2',
     'starts_at' => 'datetime',
     'ends_at' => 'datetime',
-    'active' => 'boolean',
   ];
 
-  public function isValid(): bool
+  public function getRouteKeyName()
+  {
+    return 'uuid';
+  }
+
+  public function getActiveAttribute(): bool
   {
     $now = now();
 
-    if (!$this->active) {
-      return false;
-    }
-
-    if ($this->starts_at && $now->lt($this->starts_at)) {
-      return false;
-    }
-
-    if ($this->ends_at && $now->gt($this->ends_at)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  public function isActive(): bool
-  {
-    return $this->active;
+    return (!$this->starts_at || $this->starts_at <= $now)
+      && (!$this->ends_at || $this->ends_at >= $now);
   }
 
   public function isGlobal(): bool
@@ -78,14 +65,28 @@ class Promotion extends Model
 
   public function scopeActive(Builder $query): Builder
   {
-    return $query->where('active', true)
-      ->where(function ($q) {
+    $now = now();
+
+    return $query
+      ->where(function ($q) use ($now) {
         $q->whereNull('starts_at')
-          ->orWhere('starts_at', '<=', now());
+          ->orWhere('starts_at', '<=', $now);
       })
-      ->where(function ($q) {
+      ->where(function ($q) use ($now) {
         $q->whereNull('ends_at')
-          ->orWhere('ends_at', '>=', now());
+          ->orWhere('ends_at', '>=', $now);
       });
+  }
+
+  public function applyDiscount(float $price): float
+  {
+    if (!$this->active) {
+      return $price;
+    }
+
+    return match ($this->type) {
+      DiscountType::Fixed => max(0, $price - $this->value),
+      DiscountType::Percentage => $price * (1 - ($this->value / 100)),
+    };
   }
 }

@@ -19,6 +19,10 @@ class Client extends Model
 
   protected $fillable = ['name', 'document', 'date_of_birth', 'email', 'phone', 'user_uuid'];
 
+  protected $casts = [
+    'date_of_birth' => 'datetime',
+  ];
+
   public function creator(): BelongsTo
   {
     return $this->belongsTo(User::class, 'user_uuid', 'uuid');

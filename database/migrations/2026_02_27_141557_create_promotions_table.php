@@ -15,9 +15,8 @@ return new class extends Migration {
       $table->string('name');
       $table->string('type');
       $table->decimal('value', 5);
-      $table->dateTime('starts_at')->nullable();
-      $table->dateTime('ends_at')->nullable();
-      $table->boolean('active')->default(true);
+      $table->dateTime('starts_at');
+      $table->dateTime('ends_at');
       $table->timestamps();
       $table->softDeletes();
     });

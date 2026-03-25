@@ -28,6 +28,7 @@
               'Valor',
               'Início',
               'Fim',
+              'Categorias',
               'Status',
               ['label' => 'Ações', 'no-export' => true, 'width' => 5],
     ];
@@ -41,30 +42,37 @@
     @foreach($promotions as $promotion)
       <tr>
         <td>{{$promotion->name}}</td>
-        <td>{{$promotion->type}}</td>
-        <td>{{$promotion->value}}</td>
+        <td>{{$promotion->type_formatted}}</td>
+        <td>{{$promotion->value_formatted}}</td>
         <td>{{$promotion->starts_at_formatted}}</td>
         <td>{{$promotion->ends_at_formatted}}</td>
-        <td>{{$promotion->active_formatted}}</td>
+        <td>
+          @if($promotion->isGlobal())
+            <span class="badge badge-success">Global</span>
+          @else
+            @foreach($promotion->categories as $category)
+              <span class="badge badge-primary">
+        {{ $category->name }}
+      </span>
+            @endforeach
+          @endif
+        </td>
+        <td>
+          <span
+            class="badge {{$promotion->active ? 'badge-info' : 'badge-danger'}}">{{$promotion->active_formatted}}</span>
+        </td>
         <td class="d-flex">
-          <a href="#" class="btn btn-primary mr-2" title="Agendar">
-            <i class="fas fa-xg fa-calendar-alt"></i>
+          <a href="{{ route('promotions.edit', $promotion) }}" class="btn btn-info mr-2" title="Editar">
+            <i class="fas fa-xg fa-pen"></i>
           </a>
-          @can('update', $promotion)
-            <a href="{{ route('promotions.edit', $promotion) }}" class="btn btn-info mr-2" title="Editar">
-              <i class="fas fa-xg fa-pen"></i>
-            </a>
-          @endcan
 
-          @can('delete', $promotion)
-            <x-adminlte-button
-              data-toggle="modal"
-              data-target="#removeClientModal"
-              theme="danger"
-              icon="fas fa-xg fa-trash-alt"
-              title="Apagar"
-            />
-          @endcan
+          <x-adminlte-button
+            data-toggle="modal"
+            data-target="#removeClientModal"
+            theme="danger"
+            icon="fas fa-xg fa-trash-alt"
+            title="Apagar"
+          />
         </td>
       </tr>
 
