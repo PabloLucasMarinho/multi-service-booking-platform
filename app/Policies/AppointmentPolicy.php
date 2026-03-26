@@ -7,12 +7,21 @@ use App\Models\User;
 
 class AppointmentPolicy
 {
+  public function before(User $user, string $ability): ?bool
+  {
+    if ($user->role->name === 'Administrador') {
+      return true;
+    }
+
+    return null;
+  }
+
   /**
    * Determine whether the user can view any models.
    */
   public function viewAny(User $user): bool
   {
-    return false;
+    return $user->role->name === 'Funcionário';
   }
 
   /**
@@ -20,7 +29,7 @@ class AppointmentPolicy
    */
   public function view(User $user, Appointment $appointment): bool
   {
-    return false;
+    return $user->role->name === 'Funcionário';
   }
 
   /**
@@ -28,7 +37,7 @@ class AppointmentPolicy
    */
   public function create(User $user): bool
   {
-    return false;
+    return $user->role->name === 'Funcionário';
   }
 
   /**
@@ -36,10 +45,6 @@ class AppointmentPolicy
    */
   public function update(User $user, Appointment $appointment): bool
   {
-    if ($user->role->name === 'Administrador') {
-      return true;
-    }
-
     return $appointment->user_uuid === $user->uuid;
   }
 
@@ -48,7 +53,7 @@ class AppointmentPolicy
    */
   public function delete(User $user, Appointment $appointment): bool
   {
-    return $this->update($user, $appointment);
+    return false;
   }
 
   /**

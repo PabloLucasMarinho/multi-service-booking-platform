@@ -6,7 +6,6 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -22,7 +21,7 @@ class UserController extends Controller
   /**
    * Display a listing of the resource.
    */
-  public function index(Request $request)
+  public function index()
   {
     Gate::authorize('viewAny', User::class);
 

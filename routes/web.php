@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\HomeController;
@@ -27,4 +28,7 @@ Route::middleware('auth')->group(function () {
   Route::delete('categories/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
   Route::resource('promotions', PromotionController::class);
+
+  Route::resource('appointments', AppointmentController::class);
+  Route::get('monthly', [AppointmentController::class, 'monthly'])->name('appointments.monthly');
 });

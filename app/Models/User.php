@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\FormatsAttributes;
 use App\Models\Traits\ModelsDefaults;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable
 {
-  use HasFactory, Notifiable, ModelsDefaults, SoftDeletes;
+  use HasFactory, Notifiable, ModelsDefaults, FormatsAttributes, SoftDeletes;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';

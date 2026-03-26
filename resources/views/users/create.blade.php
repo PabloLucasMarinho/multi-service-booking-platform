@@ -287,7 +287,7 @@
               $('#form-force-delete').attr('action', '/users/' + response.uuid + '/anonymize');
               $('#userExists').modal('show');
             } else {
-              form.off('submit').submit();
+              window.location.href = '{{ route('users.index') }}?success=Funcionário+cadastrado+com+sucesso!';
             }
           },
         });

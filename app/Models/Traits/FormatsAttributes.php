@@ -2,6 +2,7 @@
 
 namespace App\Models\Traits;
 
+use App\Enums\AppointmentStatus;
 use App\Enums\DiscountType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +48,13 @@ trait FormatsAttributes
     );
   }
 
+  protected function scheduledAtFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->formatDateTime($this->scheduled_at)
+    );
+  }
+
   protected function startsAtFormatted(): Attribute
   {
     return Attribute::make(
@@ -77,6 +85,18 @@ trait FormatsAttributes
       get: fn() => $this->salary
         ? number_format((float)$this->salary, 2, ',', '.')
         : null
+    );
+  }
+
+  protected function statusFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => match ($this->status) {
+        AppointmentStatus::Scheduled => 'Agendado',
+        AppointmentStatus::Completed => 'Concluído',
+        AppointmentStatus::Cancelled => 'Cancelado',
+        AppointmentStatus::NoShow => 'Não Compareceu',
+      }
     );
   }
 
@@ -166,6 +186,19 @@ trait FormatsAttributes
     }
 
     return $phone;
+  }
+
+  private function formatDateTime($dateTime): string
+  {
+    if (!$dateTime) {
+      return '';
+    }
+
+    try {
+      return Carbon::parse($dateTime)->format('d/m/Y - H:i');
+    } catch (\Throwable) {
+      return (string)$dateTime;
+    }
   }
 
   private function formatDate($date): string

@@ -47,6 +47,11 @@ class UserPolicy
     return false;
   }
 
+  public function updateAny(User $user): bool
+  {
+    return false;
+  }
+
   /**
    * Determine whether the user can delete the model.
    */

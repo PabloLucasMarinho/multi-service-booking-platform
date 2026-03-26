@@ -25,7 +25,9 @@ class PromotionController extends Controller
   {
     Gate::authorize('viewAny', Promotion::class);
 
-    $promotions = Promotion::where('uuid', '!=', auth()->user()->uuid)->get();
+    $promotions = Promotion::query()
+      ->orderBy('name')
+      ->get();
 
     return view('promotions.index', compact('promotions'));
   }

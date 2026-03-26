@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
+use App\Jobs\SendResetPasswordEmail;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Password;
 
 class UserService
 {
   public function create(array $data): void
   {
-    DB::transaction(function () use ($data) {
+    $user = DB::transaction(function () use ($data) {
       $roleUuid = Role::where('name', $data['role'])->value('uuid')
         ?? throw new \RuntimeException("Função '{$data['role']}' não encontrada.");
 
@@ -35,10 +35,10 @@ class UserService
         'admission_date' => $data['admission_date'],
       ]);
 
-      Password::sendResetLink([
-        'email' => $user->email,
-      ]);
+      return $user;
     });
+
+    SendResetPasswordEmail::dispatch($user->email)->afterCommit();
   }
 
   public function update(array $data, User $user): void

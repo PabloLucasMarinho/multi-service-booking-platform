@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 use App\Models\User;
 use App\Rules\Cep;
 use App\Rules\Cpf;
-use App\Rules\DateOfBirth;
 use App\Rules\Phone;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;

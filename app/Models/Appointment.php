@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use App\Enums\AppointmentStatus;
+use App\Models\Traits\FormatsAttributes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Appointment extends Model
 {
+  use HasUuids, FormatsAttributes;
+
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';
   public $incrementing = false;
@@ -49,5 +53,30 @@ class Appointment extends Model
   public function getFormattedTotalAttribute(): string
   {
     return number_format($this->total, 2, ',', '.');
+  }
+
+  public function getStatusBadgeAttribute(): string
+  {
+    return match ($this->status) {
+      AppointmentStatus::Scheduled => 'badge-primary',
+      AppointmentStatus::Completed => 'badge-success',
+      AppointmentStatus::Cancelled => 'badge-danger',
+      AppointmentStatus::NoShow => 'badge-warning',
+    };
+  }
+
+  public function getScheduledDateAttribute(): string
+  {
+    return $this->scheduled_at->format('d/m/Y');
+  }
+
+  public function getScheduledTimeAttribute(): string
+  {
+    return $this->scheduled_at->format('H:i');
+  }
+
+  public function getRouteKeyName(): string
+  {
+    return 'uuid';
   }
 }

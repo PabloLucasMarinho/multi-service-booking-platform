@@ -3,6 +3,7 @@
 return [
 
   'main_navigation' => 'Navegação Principal',
+  'appointments_navigation' => 'Agendamentos',
   'search' => 'Buscar',
   'blog' => 'Blog',
   'pages' => 'Página',
@@ -20,6 +21,7 @@ return [
   'clients' => 'Clientes',
   'employees' => 'Funcionários',
   'appointments' => 'Agendamentos',
+  'monthly_appointments' => 'Agendamentos Mensais',
   'services' => 'Serviços',
   'password' => 'Alterar Senha',
   'promotions' => 'Promoções'
