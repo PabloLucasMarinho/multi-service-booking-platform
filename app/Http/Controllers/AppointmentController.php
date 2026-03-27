@@ -10,6 +10,8 @@ use App\Models\Client;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -26,11 +28,18 @@ class AppointmentController extends Controller
   /**
    * Display a listing of the resource.
    */
-  public function index()
+  public function index(Request $request)
   {
     Gate::authorize('viewAny', Appointment::class);
 
     $appointments = Appointment::query()
+      ->when($request->from, function ($query) use ($request) {
+        $query->whereDate('scheduled_at', '>=', Carbon::createFromFormat('d/m/Y', $request->from));
+      })
+      ->when($request->to, function ($query) use ($request) {
+        $query->whereDate('scheduled_at', '<=', Carbon::createFromFormat('d/m/Y', $request->to));
+      })
+      ->with(['client', 'user'])
       ->orderBy('scheduled_at')
       ->get();
 

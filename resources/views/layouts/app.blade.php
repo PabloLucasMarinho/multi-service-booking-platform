@@ -44,3 +44,17 @@
     });
   </script>
 @endpush
+
+@push('css')
+  <style>
+    .content-wrapper {
+      padding-bottom: 2rem;
+      overflow-x: hidden;
+      overflow-y: visible !important;
+    }
+
+    .card {
+      overflow: visible;
+    }
+  </style>
+@endpush
