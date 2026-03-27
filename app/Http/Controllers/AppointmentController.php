@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Client;
+use App\Models\Service;
 use App\Models\User;
-use App\Services\AppointmentService;
+use App\Services\BookingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +18,7 @@ use Throwable;
 class AppointmentController extends Controller
 {
   public function __construct(
-    private AppointmentService $appointmentService
+    private BookingService $bookingService
   )
   {
   }
@@ -78,7 +80,7 @@ class AppointmentController extends Controller
     Gate::authorize('create', Appointment::class);
 
     try {
-      $appointment = $this->appointmentService->create($request->validated());
+      $appointment = $this->bookingService->appointmentCreate($request->validated());
 
       return redirect()
         ->route('appointments.show', $appointment)
@@ -99,7 +101,18 @@ class AppointmentController extends Controller
    */
   public function show(Appointment $appointment)
   {
-    dd($appointment);
+    Gate::authorize('view', $appointment);
+
+    $appointment->load(['appointmentServices.service', 'appointmentServices.promotion', 'client', 'user']);
+
+    $addedServiceUuids = $appointment->appointmentServices->pluck('service_uuid');
+
+    $services = Service::select('uuid', 'name', 'price')
+      ->whereNotIn('uuid', $addedServiceUuids)
+      ->orderBy('name')
+      ->get();
+
+    return view('appointments.show', compact('appointment', 'services'));
   }
 
   /**
@@ -128,7 +141,7 @@ class AppointmentController extends Controller
     Gate::authorize('update', $appointment);
 
     try {
-      $appointment = $this->appointmentService->update($request->validated(), $appointment);
+      $appointment = $this->bookingService->appointmentUpdate($request->validated(), $appointment);
 
       return redirect()
         ->route('appointments.show', $appointment)
@@ -149,6 +162,23 @@ class AppointmentController extends Controller
    */
   public function destroy(Appointment $appointment)
   {
-    //
+    Gate::authorize('delete', $appointment);
+
+    $appointment->update(['status' => AppointmentStatus::Cancelled]);
+
+    return redirect()
+      ->route('appointments.index')
+      ->with('success', 'Agendamento cancelado.');
+  }
+
+  public function complete(Appointment $appointment)
+  {
+    Gate::authorize('update', $appointment);
+
+    $appointment->update(['status' => AppointmentStatus::Completed]);
+
+    return redirect()
+      ->route('appointments.show', $appointment)
+      ->with('success', 'Agendamento concluído.');
   }
 }

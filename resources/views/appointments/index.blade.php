@@ -42,7 +42,7 @@
         <td>{{$appointment->client->name}}</td>
         <td>{{$appointment->user->name}}</td>
         <td>
-          <span class="badge {{$appointment->status_badge}}">{{$appointment->status_formatted}}</span>
+          <span class="badge badge-{{$appointment->status_color}}">{{$appointment->status_formatted}}</span>
         </td>
 
         <td class="d-flex">

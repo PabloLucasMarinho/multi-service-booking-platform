@@ -55,13 +55,13 @@ class Appointment extends Model
     return number_format($this->total, 2, ',', '.');
   }
 
-  public function getStatusBadgeAttribute(): string
+  public function getStatusColorAttribute(): string
   {
     return match ($this->status) {
-      AppointmentStatus::Scheduled => 'badge-primary',
-      AppointmentStatus::Completed => 'badge-success',
-      AppointmentStatus::Cancelled => 'badge-danger',
-      AppointmentStatus::NoShow => 'badge-warning',
+      AppointmentStatus::Scheduled => 'primary',
+      AppointmentStatus::Completed => 'success',
+      AppointmentStatus::Cancelled => 'danger',
+      AppointmentStatus::NoShow => 'warning',
     };
   }
 

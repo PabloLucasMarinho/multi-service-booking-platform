@@ -86,7 +86,12 @@ class UserController extends Controller
    */
   public function show(User $user)
   {
-    Gate::authorize('view', $user);
+    // Verifica se é o próprio perfil ou se tem permissão de view
+    if (auth()->user()->uuid === $user->uuid) {
+      Gate::authorize('viewSelf', $user);
+    } else {
+      Gate::authorize('view', $user);
+    }
 
     $user->load('details');
 

@@ -53,14 +53,14 @@ class AppServiceProvider extends ServiceProvider
         'model' => Appointment::class,
       ]);
 
-      $event->menu->add([
-        'text' => 'monthly_appointments',
-        'route' => 'appointments.monthly',
-        'icon' => 'fas fa-fw fa-calendar-alt',
-        'active' => ['monthly'],
-        'can' => 'viewAny',
-        'model' => Appointment::class,
-      ]);
+//      $event->menu->add([
+//        'text' => 'monthly_appointments',
+//        'route' => 'appointments.monthly',
+//        'icon' => 'fas fa-fw fa-calendar-alt',
+//        'active' => ['monthly'],
+//        'can' => 'viewAny',
+//        'model' => Appointment::class,
+//      ]);
 
       $event->menu->add([
         'text' => 'clients',
@@ -105,6 +105,8 @@ class AppServiceProvider extends ServiceProvider
         'route' => ['users.show', ['user' => auth()->user()]],
         'icon' => 'fas fa-fw fa-user',
         'active' => $isOwnProfile ? ['users/' . auth()->user()->uuid, 'users/' . auth()->user()->uuid . '/*'] : [],
+        'can' => 'viewSelf',
+        'model' => auth()->user(),
       ]);
 
       $event->menu->add([

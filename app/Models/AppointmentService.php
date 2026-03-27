@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Enums\DiscountType;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AppointmentService extends Model
 {
-  use SoftDeletes;
+  use HasUuids, SoftDeletes;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';
@@ -75,5 +76,10 @@ class AppointmentService extends Model
     $finalPrice = round($afterPromotion - $manualAmount, 2);
 
     $this->final_price = max(0, $finalPrice);
+  }
+
+  public function getRouteKeyName(): string
+  {
+    return 'uuid';
   }
 }

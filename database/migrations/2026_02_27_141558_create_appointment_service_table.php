@@ -10,7 +10,8 @@ return new class extends Migration {
    */
   public function up(): void
   {
-    Schema::create('appointment_service', function (Blueprint $table) {
+    Schema::create('appointment_services', function (Blueprint $table) {
+      $table->uuid()->primary();
       $table->foreignUuid('appointment_uuid')
         ->constrained('appointments', 'uuid')
         ->cascadeOnDelete();
@@ -18,9 +19,9 @@ return new class extends Migration {
         ->constrained('services', 'uuid')
         ->cascadeOnDelete();
       $table->foreignUuid('promotion_uuid')
+        ->nullable()
         ->constrained('promotions', 'uuid')
         ->cascadeOnDelete();
-      $table->primary(['appointment_uuid', 'service_uuid']);
 
       $table->decimal('original_price', 10);
       $table->string('manual_discount_type')->nullable();

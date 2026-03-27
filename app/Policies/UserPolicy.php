@@ -31,6 +31,11 @@ class UserPolicy
     return false;
   }
 
+  public function viewSelf(User $authUser, User $targetUser): bool
+  {
+    return $authUser->uuid === $targetUser->uuid;
+  }
+
   /**
    * Determine whether the user can create models.
    */

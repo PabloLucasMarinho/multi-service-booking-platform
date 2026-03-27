@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AppointmentServiceController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\HomeController;
@@ -31,4 +32,8 @@ Route::middleware('auth')->group(function () {
 
   Route::resource('appointments', AppointmentController::class);
   Route::get('monthly', [AppointmentController::class, 'monthly'])->name('appointments.monthly');
+
+  Route::post('appointments/{appointment}/services', [AppointmentServiceController::class, 'store'])->name('appointment-services.store');
+  Route::delete('appointment-services/{appointmentService}', [AppointmentServiceController::class, 'destroy'])->name('appointment-services.destroy');
+  Route::patch('appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
 });
