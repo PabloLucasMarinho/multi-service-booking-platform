@@ -46,21 +46,32 @@ class AppointmentController extends Controller
     return view('appointments.index', compact('appointments'));
   }
 
-  public function monthly()
+  public function monthly(Request $request)
   {
     Gate::authorize('viewAny', Appointment::class);
 
+    $month = $request->input('month', now()->month);
+    $year = $request->input('year', now()->year);
+
     $appointments = Appointment::select(
       DB::raw('DATE(scheduled_at) as date'),
-      DB::raw('COUNT(*) as total')
+      DB::raw('COUNT(*) as appointments_count')
     )
-      ->whereMonth('scheduled_at', now()->month)
-      ->whereYear('scheduled_at', now()->year)
+      ->whereMonth('scheduled_at', $month)
+      ->whereYear('scheduled_at', $year)
       ->groupBy('date')
       ->orderBy('date')
       ->get();
 
-    return view('appointments.monthly', compact('appointments'));
+    if ($request->ajax()) {
+      return response()->json(
+        $appointments->keyBy('date')->map(fn($a) => (int)$a->appointments_count)
+      );
+    }
+
+    $appointmentsByDate = $appointments->keyBy('date')->map(fn($a) => (int)$a->appointments_count);
+
+    return view('appointments.monthly', compact('appointmentsByDate', 'month', 'year'));
   }
 
   /**

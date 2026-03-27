@@ -152,6 +152,10 @@
         $('#filter-date-to').val('');
         $('#btn-apply-filters').trigger('click');
       });
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('from')) $('#filter-date-from').val(params.get('from'));
+      if (params.get('to')) $('#filter-date-to').val(params.get('to'));
     });
   </script>
 @stop

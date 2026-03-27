@@ -53,14 +53,14 @@ class AppServiceProvider extends ServiceProvider
         'model' => Appointment::class,
       ]);
 
-//      $event->menu->add([
-//        'text' => 'monthly_appointments',
-//        'route' => 'appointments.monthly',
-//        'icon' => 'fas fa-fw fa-calendar-alt',
-//        'active' => ['monthly'],
-//        'can' => 'viewAny',
-//        'model' => Appointment::class,
-//      ]);
+      $event->menu->add([
+        'text' => 'monthly_appointments',
+        'route' => 'appointments.monthly',
+        'icon' => 'fas fa-fw fa-calendar-alt',
+        'active' => ['monthly'],
+        'can' => 'viewAny',
+        'model' => Appointment::class,
+      ]);
 
       $event->menu->add([
         'text' => 'clients',
