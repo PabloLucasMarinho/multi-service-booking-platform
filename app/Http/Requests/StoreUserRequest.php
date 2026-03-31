@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\BrazilianState;
+use App\Enums\RoleNames;
 use App\Models\User;
 use App\Rules\Cep;
-use App\Rules\Cpf;
+use App\Rules\Document;
 use App\Rules\Phone;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -41,18 +43,14 @@ class StoreUserRequest extends BaseFormRequest
   public function withValidator($validator): void
   {
     $validator->after(function ($validator) {
-
       $deletedUser = User::onlyTrashed()
         ->where(function ($query) {
           $query->where('email', $this->email)
-            ->orWhereHas('details', function ($query) {
-              $query->withTrashed()->where('document', $this->document);
-            });
+            ->orWhere('document', $this->document);
         })
         ->first();
 
       if ($deletedUser) {
-        // Guarda o usuário deletado para o controller acessar
         $this->merge(['deleted_user_data' => $deletedUser]);
       }
     });
@@ -69,7 +67,7 @@ class StoreUserRequest extends BaseFormRequest
       'name' => 'required|string|max:255',
       'email' => ['required', 'email', Rule::unique('users', 'email')->whereNull('deleted_at')],
 
-      'document' => ['required', new Cpf, Rule::unique('user_details', 'document')->whereNull('deleted_at')],
+      'document' => ['required', new Document, Rule::unique('users', 'document')->whereNull('deleted_at')],
       'date_of_birth' => [
         'required',
         'date',
@@ -78,13 +76,15 @@ class StoreUserRequest extends BaseFormRequest
       ],
       'phone' => ['required', new Phone],
       'address' => 'required|string|max:100',
+      'address_number' => 'nullable|string|max:10',
       'address_complement' => 'nullable|string|max:50',
       'zip_code' => ['required', new Cep],
       'neighborhood' => 'required|string|max:50',
       'city' => 'required|string|max:50',
+      'state' => ['required', Rule::enum(BrazilianState::class)],
       'salary' => 'nullable|numeric|min:0|max:99999999.99',
       'admission_date' => 'required|date|before:tomorrow',
-      'role' => 'required|string|in:admin,employee',
+      'role' => ['required', Rule::enum(RoleNames::class)],
     ];
   }
 
@@ -92,21 +92,41 @@ class StoreUserRequest extends BaseFormRequest
   {
     return [
       'name.required' => 'O :attribute é obrigatório.',
+
       'email.required' => 'O :attribute é obrigatório.',
+      'email.email' => 'O :attribute informado é inválido.',
       'email.unique' => 'Este :attribute já está cadastrado.',
+
       'document.required' => 'O :attribute é obrigatório.',
       'document.unique' => 'Este :attribute já está cadastrado.',
+
       'date_of_birth.required' => 'A :attribute é obrigatória.',
       'date_of_birth.date' => 'A :attribute informada é inválida.',
+      'date_of_birth.before' => 'A :attribute não pode ser uma data futura.',
+      'date_of_birth.after' => 'A :attribute informada é inválida.',
+
       'phone.required' => 'O :attribute é obrigatório.',
-      'address.required' => 'O :attribute é obrigatório',
+
+      'address.required' => 'O :attribute é obrigatório.',
+      'address.max' => 'O :attribute não pode ter mais de 100 caracteres.',
+
       'zip_code.required' => 'O :attribute é obrigatório.',
+
+      'neighborhood.required' => 'O :attribute é obrigatório.',
+      'city.required' => 'A :attribute é obrigatória.',
+      'state.required' => 'O :attribute é obrigatório.',
+      'state.enum' => 'O :attribute informado é inválido.',
+
+      'salary.numeric' => 'O :attribute informado é inválido.',
+      'salary.min' => 'O :attribute não pode ser negativo.',
+      'salary.max' => 'O :attribute informado é muito alto.',
+
       'admission_date.required' => 'A :attribute é obrigatória.',
       'admission_date.date' => 'A :attribute informada é inválida.',
       'admission_date.before' => 'A :attribute não pode ser futura.',
+
       'role.required' => 'A :attribute é obrigatória.',
-      'role.in' => 'A :attribute deve ser Funcionário ou Administrador.',
-      'role.string' => 'A :attribute informada é inválida.'
+      'role.enum' => 'A :attribute informada é inválida.',
     ];
   }
 
@@ -119,10 +139,12 @@ class StoreUserRequest extends BaseFormRequest
       'date_of_birth' => 'data de nascimento',
       'phone' => 'telefone',
       'address' => 'endereço',
+      'address_number' => 'número',
       'address_complement' => 'complemento',
       'zip_code' => 'CEP',
       'neighborhood' => 'bairro',
       'city' => 'cidade',
+      'state' => 'estado',
       'salary' => 'salário',
       'admission_date' => 'data de admissão',
       'role' => 'função',

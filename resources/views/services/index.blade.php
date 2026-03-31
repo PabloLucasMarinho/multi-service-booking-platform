@@ -19,61 +19,63 @@
 @stop
 
 @section('content')
-  <x-adminlte-card title="Cadastro de serviços" theme="primary" icon="fas fa-clipboard-list">
-    <form id="service-form" action="{{ route('services.store') }}" method="POST">
-      @csrf
-      <input type="hidden" id="form-method" name="_method" value="">
-      <input type="hidden" id="service-uuid" value="">
+  @can('create', App\Models\Service::class)
+    <x-adminlte-card title="Cadastro de serviços" theme="primary" icon="fas fa-clipboard-list">
+      <form id="service-form" action="{{ route('services.store') }}" method="POST">
+        @csrf
+        <input type="hidden" id="form-method" name="_method" value="">
+        <input type="hidden" id="service-uuid" value="">
 
-      <div class="row">
-        <x-adminlte-input
-          id="name"
-          name="name"
-          label="Nome *"
-          placeholder="p.ex. Corte Máquina"
-          value="{{ old('name') }}"
-          autocomplete="off"
-          fgroup-class="col-md-4"
-          required
-        />
+        <div class="row">
+          <x-adminlte-input
+            id="name"
+            name="name"
+            label="Nome *"
+            placeholder="p.ex. Corte Máquina"
+            value="{{ old('name') }}"
+            autocomplete="off"
+            fgroup-class="col-md-4"
+            required
+          />
 
-        <x-adminlte-input
-          id="price"
-          name="price"
-          label="Preço *"
-          placeholder="p.ex. 50,00"
-          value="{{ old('price') }}"
-          autocomplete="off"
-          fgroup-class="col-md-4"
-          required
-        >
-          <x-slot name="prependSlot">
-            <div class="input-group-text">R$</div>
-          </x-slot>
-        </x-adminlte-input>
+          <x-adminlte-input
+            id="price"
+            name="price"
+            label="Preço *"
+            placeholder="p.ex. 50,00"
+            value="{{ old('price') }}"
+            autocomplete="off"
+            fgroup-class="col-md-4"
+            required
+          >
+            <x-slot name="prependSlot">
+              <div class="input-group-text">R$</div>
+            </x-slot>
+          </x-adminlte-input>
 
-        <x-tag-input id="categories" label="Categorias" placeholder="Nova categoria..." col-size="4"/>
-      </div>
+          <x-tag-input id="categories" label="Categorias" placeholder="Nova categoria..." col-size="4"/>
+        </div>
 
-      <div class="row justify-content-end">
-        <x-adminlte-button
-          id="btn-cancel-edit"
-          type="button"
-          label="Cancelar"
-          theme="secondary"
-          icon="fas fa-times"
-          class="mr-2 d-none"
-        />
-        <x-adminlte-button
-          id="btn-submit"
-          type="submit"
-          label="Cadastrar"
-          theme="success"
-          icon="fas fa-save"
-        />
-      </div>
-    </form>
-  </x-adminlte-card>
+        <div class="row justify-content-end">
+          <x-adminlte-button
+            id="btn-cancel-edit"
+            type="button"
+            label="Cancelar"
+            theme="secondary"
+            icon="fas fa-times"
+            class="mr-2 d-none"
+          />
+          <x-adminlte-button
+            id="btn-submit"
+            type="submit"
+            label="Cadastrar"
+            theme="success"
+            icon="fas fa-save"
+          />
+        </div>
+      </form>
+    </x-adminlte-card>
+  @endcan
 
   <div class="mb-2">
     @php
@@ -103,25 +105,29 @@
           </td>
 
           <td class="d-flex">
-            <button
-              class="btn btn-info mr-2 btn-edit-service"
-              type="button"
-              data-uuid="{{ $service->uuid }}"
-              data-name="{{ $service->name }}"
-              data-price="{{ $service->price_formatted }}"
-              data-categories="{{ $service->categories->pluck('name')->toJson() }}"
-              title="Editar"
-            >
-              <i class="fas fa-xg fa-pen"></i>
-            </button>
+            @can('update', $service)
+              <button
+                class="btn btn-info mr-2 btn-edit-service"
+                type="button"
+                data-uuid="{{ $service->uuid }}"
+                data-name="{{ $service->name }}"
+                data-price="{{ $service->price_formatted }}"
+                data-categories="{{ $service->categories->pluck('name')->toJson() }}"
+                title="Editar"
+              >
+                <i class="fas fa-xg fa-pen"></i>
+              </button>
+            @endcan
 
-            <x-adminlte-button
-              data-toggle="modal"
-              data-target="#removeServiceModal-{{ $service->uuid }}"
-              theme="danger"
-              icon="fas fa-xg fa-trash-alt"
-              title="Apagar"
-            />
+            @can('delete', $service)
+              <x-adminlte-button
+                data-toggle="modal"
+                data-target="#removeServiceModal-{{ $service->uuid }}"
+                theme="danger"
+                icon="fas fa-xg fa-trash-alt"
+                title="Apagar"
+              />
+            @endcan
           </td>
         </tr>
 

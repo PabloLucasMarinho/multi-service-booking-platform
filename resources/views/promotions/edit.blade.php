@@ -49,7 +49,7 @@
               <i class="fas fa-tag"></i>
             </div>
           </x-slot>
-          <x-adminlte-options :options="$discountTypes" :selected="[$promotion->type]"/>
+          <x-adminlte-options :options="$discountTypes" :selected="[$promotion->type->value]"/>
         </x-adminlte-select>
 
         <x-adminlte-input

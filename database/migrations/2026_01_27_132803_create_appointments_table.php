@@ -22,6 +22,10 @@ return new class extends Migration {
       $table->text('notes')->nullable();
       $table->string('status');
       $table->timestamps();
+      $table->foreignUuid('created_by')->nullable()
+        ->constrained('users', 'uuid')->nullOnDelete();
+      $table->foreignUuid('updated_by')->nullable()
+        ->constrained('users', 'uuid')->nullOnDelete();
       $table->softDeletes();
     });
   }

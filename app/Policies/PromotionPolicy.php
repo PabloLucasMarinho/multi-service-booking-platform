@@ -9,7 +9,7 @@ class PromotionPolicy
 {
   public function before(User $user, string $ability): ?bool
   {
-    if ($user->role->name === 'Administrador') {
+    if ($user->role->name === 'owner') {
       return true;
     }
 

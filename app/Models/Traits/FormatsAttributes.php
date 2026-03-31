@@ -2,8 +2,6 @@
 
 namespace App\Models\Traits;
 
-use App\Enums\AppointmentStatus;
-use App\Enums\DiscountType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -23,7 +21,21 @@ trait FormatsAttributes
   protected function documentFormatted(): Attribute
   {
     return Attribute::make(
-      get: fn() => $this->formatCpf($this->document)
+      get: function () {
+        if (!$this->document) return null;
+
+        $doc = preg_replace('/\D/', '', $this->document);
+
+        if (strlen($doc) === 11) {
+          return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $doc);
+        }
+
+        if (strlen($doc) === 14) {
+          return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $doc);
+        }
+
+        return $this->document;
+      }
     );
   }
 
@@ -48,13 +60,6 @@ trait FormatsAttributes
     );
   }
 
-  protected function scheduledAtFormatted(): Attribute
-  {
-    return Attribute::make(
-      get: fn() => $this->formatDateTime($this->scheduled_at)
-    );
-  }
-
   protected function startsAtFormatted(): Attribute
   {
     return Attribute::make(
@@ -69,16 +74,6 @@ trait FormatsAttributes
     );
   }
 
-  protected function activeFormatted(): Attribute
-  {
-    return Attribute::make(get: fn() => $this->active === true ? 'Ativo' : 'Inativo');
-  }
-
-  protected function typeFormatted(): Attribute
-  {
-    return Attribute::make(get: fn() => $this->type === DiscountType::Fixed ? 'Fixo' : 'Porcentagem');
-  }
-
   protected function salaryFormatted(): Attribute
   {
     return Attribute::make(
@@ -88,39 +83,12 @@ trait FormatsAttributes
     );
   }
 
-  protected function statusFormatted(): Attribute
-  {
-    return Attribute::make(
-      get: fn() => match ($this->status) {
-        AppointmentStatus::Scheduled => 'Agendado',
-        AppointmentStatus::Completed => 'Concluído',
-        AppointmentStatus::Cancelled => 'Cancelado',
-        AppointmentStatus::NoShow => 'Não Compareceu',
-      }
-    );
-  }
-
   protected function priceFormatted(): Attribute
   {
     return Attribute::make(
       get: fn() => $this->price
         ? number_format((float)$this->price, 2, ',', '.')
         : null
-    );
-  }
-
-  protected function valueFormatted(): Attribute
-  {
-    return Attribute::make(
-      get: function () {
-        if (!$this->value) {
-          return null;
-        }
-
-        return $this->type === DiscountType::Percentage
-          ? (float)$this->value . '%'
-          : 'R$' . number_format((float)$this->value, 2, ',', '.');
-      }
     );
   }
 
@@ -148,19 +116,6 @@ trait FormatsAttributes
     );
 
     return trim($name);
-  }
-
-  private function formatCpf(?string $cpf): ?string
-  {
-    if (!$cpf || strlen($cpf) !== 11) {
-      return $cpf;
-    }
-
-    return preg_replace(
-      '/(\d{3})(\d{3})(\d{3})(\d{2})/',
-      '$1.$2.$3-$4',
-      $cpf
-    );
   }
 
   private function formatPhone(?string $phone): ?string

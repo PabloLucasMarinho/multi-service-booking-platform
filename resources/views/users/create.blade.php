@@ -105,7 +105,7 @@
           placeholder="p.ex. 32123-123"
           value="{{old('zip_code')}}"
           autocomplete="postal_code"
-          fgroup-class="col-md-2"
+          fgroup-class="col-md-1"
         />
 
         <x-adminlte-input
@@ -115,8 +115,18 @@
           placeholder="p.ex. Rua da Feira, 123"
           value="{{old('address')}}"
           autocomplete="address-line1"
-          fgroup-class="col-md-4"
+          fgroup-class="col-md-3"
           required
+        />
+
+        <x-adminlte-input
+          id="address_number"
+          name="address_number"
+          label="Número"
+          placeholder="p.ex. 123"
+          value="{{old('address_number')}}"
+          autocomplete="off"
+          fgroup-class="col-md-1"
         />
 
         <x-adminlte-input
@@ -148,6 +158,13 @@
           autocomplete="address-level2"
           fgroup-class="col-md-2"
         />
+
+        <x-adminlte-select name="state" label="Estado" fgroup-class="col-md-1">
+          <x-adminlte-options
+            :options="collect(App\Enums\BrazilianState::cases())->pluck('value', 'value')->toArray()"
+            placeholder="UF"
+          />
+        </x-adminlte-select>
       </div>
 
       <div class="row border border-dark-subtle rounded mb-2 pt-2">
@@ -157,8 +174,11 @@
               <i class="fas fa-user-tag"></i>
             </div>
           </x-slot>
-          <option value="employee">Funcionário</option>
-          <option value="admin">Administrador</option>
+          <x-adminlte-options
+            :options="$roles"
+            :selected="[old('role', 'employee')]"
+            placeholder="Selecione uma função..."
+          />
         </x-adminlte-select>
 
         <x-adminlte-input

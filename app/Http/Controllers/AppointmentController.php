@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -39,8 +40,11 @@ class AppointmentController extends Controller
       ->when($request->to, function ($query) use ($request) {
         $query->whereDate('scheduled_at', '<=', Carbon::createFromFormat('d/m/Y', $request->to));
       })
+      ->when($request->input('statuses'), function ($query) use ($request) {
+        $query->whereIn('status', $request->input('statuses'));
+      })
       ->with(['client', 'user'])
-      ->orderBy('scheduled_at')
+      ->orderBy('scheduled_at', 'asc')
       ->get();
 
     return view('appointments.index', compact('appointments'));
@@ -55,21 +59,21 @@ class AppointmentController extends Controller
 
     $appointments = Appointment::select(
       DB::raw('DATE(scheduled_at) as date'),
+      DB::raw('status'),
       DB::raw('COUNT(*) as appointments_count')
     )
       ->whereMonth('scheduled_at', $month)
       ->whereYear('scheduled_at', $year)
-      ->groupBy('date')
+      ->groupBy('date', 'status')
       ->orderBy('date')
       ->get();
 
-    if ($request->ajax()) {
-      return response()->json(
-        $appointments->keyBy('date')->map(fn($a) => (int)$a->appointments_count)
-      );
-    }
+    $appointmentsByDate = $appointments->groupBy('date')->map(fn($items) => $items->keyBy('status')->map(fn($item) => (int)$item->appointments_count)
+    );
 
-    $appointmentsByDate = $appointments->keyBy('date')->map(fn($a) => (int)$a->appointments_count);
+    if ($request->ajax()) {
+      return response()->json($appointmentsByDate);
+    }
 
     return view('appointments.monthly', compact('appointmentsByDate', 'month', 'year'));
   }
@@ -77,7 +81,7 @@ class AppointmentController extends Controller
   /**
    * Show the form for creating a new resource.
    */
-  public function create()
+  public function create(Request $request)
   {
     Gate::authorize('create', Appointment::class);
 
@@ -89,7 +93,12 @@ class AppointmentController extends Controller
       ->orderBy('name')
       ->get();
 
-    return view('appointments.create', compact('clients', 'users'));
+    $selectedClient = $request->input('client');
+
+    return view('appointments.create', compact(
+      'clients',
+      'selectedClient', 'users'
+    ));
   }
 
   /**
@@ -200,5 +209,34 @@ class AppointmentController extends Controller
     return redirect()
       ->route('appointments.show', $appointment)
       ->with('success', 'Agendamento concluído.');
+  }
+
+  public function restore(Appointment $appointment)
+  {
+    Gate::authorize('update', $appointment);
+
+    $appointment->update(['status' => AppointmentStatus::Scheduled]);
+
+    return redirect()
+      ->route('appointments.show', $appointment)
+      ->with('success', 'Agendamento reativado com sucesso!');
+  }
+
+  public function receipt(Appointment $appointment)
+  {
+    Gate::authorize('view', $appointment);
+
+    $appointment->load([
+      'appointmentServices.service',
+      'appointmentServices.promotion',
+      'client',
+      'user',
+    ]);
+
+    $company = \App\Models\Company::first();
+
+    $pdf = Pdf::loadView('appointments.receipt', compact('appointment', 'company'));
+
+    return $pdf->download('recibo-' . $appointment->uuid . '.pdf');
   }
 }

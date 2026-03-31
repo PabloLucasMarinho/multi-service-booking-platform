@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('plugins.InputMask', true)
+
 @section('subtitle', 'Agendamento de ' . $appointment->client->name)
 
 @section('content_header')
@@ -63,41 +65,43 @@
       </div>
 
       {{-- Formulário de adição --}}
-      <form action="{{ route('appointment-services.store', $appointment) }}" method="POST">
-        @csrf
-        <div class="p-3 border-bottom bg-light">
-          <div class="row align-items-end">
-            <div class="col-md-5">
-              <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Serviço</label>
-              <select name="service_uuid" class="form-control form-control-sm">
-                <option value="">Selecione um serviço...</option>
-                @foreach($services as $service)
-                  <option value="{{ $service->uuid }}">{{ $service->name }} —
-                    R$ {{ $service->price_formatted }}</option>
-                @endforeach
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Desconto</label>
-              <select name="manual_discount_type" class="form-control form-control-sm">
-                <option value="">Sem desconto</option>
-                <option value="percentage">Porcentagem (%)</option>
-                <option value="fixed">Valor fixo (R$)</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Valor</label>
-              <input type="text" name="manual_discount_value" id="discount-value" class="form-control form-control-sm"
-                     placeholder="0,00"/>
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-success btn-sm btn-block">
-                <i class="fas fa-plus mr-1"></i> Adicionar
-              </button>
+      @if($appointment->isEditable())
+        <form action="{{ route('appointment-services.store', $appointment) }}" method="POST">
+          @csrf
+          <div class="p-3 border-bottom bg-light">
+            <div class="row align-items-end">
+              <div class="col-md-5">
+                <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Serviço</label>
+                <select name="service_uuid" class="form-control form-control-sm">
+                  <option value="">Selecione um serviço...</option>
+                  @foreach($services as $service)
+                    <option value="{{ $service->uuid }}">{{ $service->name }} —
+                      R$ {{ $service->price_formatted }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Desconto</label>
+                <select name="manual_discount_type" class="form-control form-control-sm">
+                  <option value="">Sem desconto</option>
+                  <option value="percentage">Porcentagem (%)</option>
+                  <option value="fixed">Valor fixo (R$)</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Valor</label>
+                <input type="text" name="manual_discount_value" id="discount-value" class="form-control form-control-sm"
+                       placeholder="0,00"/>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-success btn-sm btn-block">
+                  <i class="fas fa-plus mr-1"></i> Adicionar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
+      @endif
 
       {{-- Tabela de serviços --}}
       <div class="table-responsive">
@@ -154,13 +158,15 @@
               <td class="text-right align-middle font-weight-bold">
                 R$ {{ number_format($appointmentService->final_price, 2, ',', '.') }}</td>
               <td class="text-center align-middle">
-                <form action="{{ route('appointment-services.destroy', $appointmentService) }}" method="POST">
-                  @method('DELETE')
-                  @csrf
-                  <button type="submit" class="btn btn-link text-danger p-0">
-                    <i class="fas fa-trash" style="font-size:13px;"></i>
-                  </button>
-                </form>
+                @if($appointment->isEditable())
+                  <form action="{{ route('appointment-services.destroy', $appointmentService) }}" method="POST">
+                    @method('DELETE')
+                    @csrf
+                    <button type="submit" class="btn btn-link text-danger p-0">
+                      <i class="fas fa-trash" style="font-size:13px;"></i>
+                    </button>
+                  </form>
+                @endif
               </td>
             </tr>
           @empty
@@ -187,23 +193,53 @@
       {{-- Ações do agendamento --}}
       @if($appointment->appointmentServices->isNotEmpty())
         <div class="card-footer d-flex justify-content-end" style="gap:8px;">
-          <form action="{{ route('appointments.destroy', $appointment) }}" method="POST">
-            @method('DELETE')
-            @csrf
-            <button type="submit" class="btn btn-danger btn-sm">
-              <i class="fas fa-times mr-1"></i> Cancelar agendamento
-            </button>
-          </form>
+          @if($appointment->status === \App\Enums\AppointmentStatus::Completed)
+            <a href="{{ route('appointments.receipt', $appointment) }}" class="btn btn-primary btn-sm">
+              <i class="fas fa-file-invoice mr-1"></i> Gerar Recibo
+            </a>
+          @elseif($appointment->isEditable())
+            <form action="{{ route('appointments.destroy', $appointment) }}" method="POST">
+              @method('DELETE')
+              @csrf
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fas fa-times mr-1"></i> Cancelar agendamento
+              </button>
+            </form>
 
-          <form action="{{ route('appointments.complete', $appointment) }}" method="POST">
-            @method('PATCH')
-            @csrf
-            <button type="submit" class="btn btn-success btn-sm">
-              <i class="fas fa-check mr-1"></i> Concluir agendamento
-            </button>
-          </form>
+            <form action="{{ route('appointments.complete', $appointment) }}" method="POST">
+              @method('PATCH')
+              @csrf
+              <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-check mr-1"></i> Concluir agendamento
+              </button>
+            </form>
+          @elseif($appointment->canRestore())
+            <form action="{{ route('appointments.restore', $appointment) }}" method="POST">
+              @method('PATCH')
+              @csrf
+              <button type="submit" class="btn btn-warning btn-sm">
+                <i class="fas fa-undo mr-1"></i> Desfazer cancelamento
+              </button>
+            </form>
+          @endif
         </div>
       @endif
     </div>
   </x-adminlte-card>
+@stop
+
+@section('js')
+  <script>
+    $(document).ready(function () {
+      $('#discount-value').inputmask('currency', {
+        prefix: '',
+        groupSeparator: '.',
+        radixPoint: ',',
+        digits: 2,
+        digitsOptional: false,
+        placeholder: '0',
+        rightAlign: false,
+      });
+    });
+  </script>
 @stop

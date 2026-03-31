@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Appointment;
 use App\Models\Client;
+use App\Models\Company;
 use App\Models\Promotion;
 use App\Models\Service;
 use App\Models\User;
@@ -107,6 +108,15 @@ class AppServiceProvider extends ServiceProvider
         'active' => $isOwnProfile ? ['users/' . auth()->user()->uuid, 'users/' . auth()->user()->uuid . '/*'] : [],
         'can' => 'viewSelf',
         'model' => auth()->user(),
+      ]);
+
+      $event->menu->add([
+        'text' => 'company',
+        'route' => 'company.index',
+        'icon' => 'fas fa-fw fa-store',
+        'active' => ['company', 'company*'],
+        'can' => 'viewAny',
+        'model' => Company::class,
       ]);
 
       $event->menu->add([

@@ -23,6 +23,18 @@ class Service extends Model
     'price',
   ];
 
+  protected static function booted(): void
+  {
+    static::creating(function (Service $service) {
+      $service->created_by = auth()->user()?->uuid ?? null;
+      $service->updated_by = auth()->user()?->uuid ?? null;
+    });
+
+    static::updating(function (Service $service) {
+      $service->updated_by = auth()->user()?->uuid ?? null;
+    });
+  }
+
   public function appointmentServices(): HasMany
   {
     return $this->hasMany(AppointmentService::class, 'service_uuid', 'uuid');

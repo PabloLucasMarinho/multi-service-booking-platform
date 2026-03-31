@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\Cpf;
+use App\Rules\Document;
 use App\Rules\Phone;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -46,7 +46,7 @@ class StoreClientRequest extends BaseFormRequest
   {
     return [
       'name' => 'required|string|min:2|max:255',
-      'document' => ['required', new Cpf, Rule::unique('clients', 'document')],
+      'document' => ['required', new Document, Rule::unique('clients', 'document')],
       'date_of_birth' => [
         'required',
         'date',

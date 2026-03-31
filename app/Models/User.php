@@ -2,18 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Traits\FormatsAttributes;
 use App\Models\Traits\ModelsDefaults;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-/**
- * @property UserDetail $details
- */
 class User extends Authenticatable
 {
   use HasFactory, Notifiable, ModelsDefaults, FormatsAttributes, SoftDeletes;
@@ -28,6 +25,25 @@ class User extends Authenticatable
     'password',
     'color',
     'role_uuid',
+    'document',
+    'date_of_birth',
+    'phone',
+    'zip_code',
+    'address',
+    'address_number',
+    'address_complement',
+    'neighborhood',
+    'city',
+    'state',
+    'salary',
+    'admission_date',
+  ];
+
+  protected $casts = [
+    'password' => 'hashed',
+    'email_verified_at' => 'datetime',
+    'date_of_birth' => 'datetime',
+    'admission_date' => 'datetime',
   ];
 
   protected $hidden = [
@@ -37,21 +53,21 @@ class User extends Authenticatable
 
   protected static function booted(): void
   {
+    static::creating(function (User $user) {
+      $user->created_by = auth()->user()?->uuid ?? null;
+      $user->updated_by = auth()->user()?->uuid ?? null;
+    });
+
+    static::updating(function (User $user) {
+      $user->updated_by = auth()->user()?->uuid ?? null;
+    });
+
     static::deleting(function (User $user) {
-      $user->details()->delete();
+      Appointment::where('user_uuid', $user->uuid)
+        ->where('scheduled_at', '>', now())
+        ->where('status', AppointmentStatus::Scheduled)
+        ->update(['status' => AppointmentStatus::Cancelled]);
     });
-
-    static::restoring(function (User $user) {
-      $user->details()->withTrashed()->restore();
-    });
-  }
-
-  protected function casts(): array
-  {
-    return [
-      'email_verified_at' => 'datetime',
-      'password' => 'hashed',
-    ];
   }
 
   public function getAuthIdentifierName(): string
@@ -69,22 +85,11 @@ class User extends Authenticatable
     return $this->belongsTo(Role::class, 'role_uuid', 'uuid');
   }
 
-  public function permissions()
-  {
-    return $this->role?->permissions();
-  }
-
-  public function details(): HasOne
-  {
-    return $this->hasOne(UserDetail::class, 'user_uuid', 'uuid');
-  }
-
   public function adminlte_desc(): string
   {
-    return $this->role->name ?? '';
+    return $this->role->name_formatted ?? '';
   }
 
-// URL de perfil dinâmica (usa o uuid do usuário)
   public function adminlte_profile_url(): string
   {
     return route('users.show', $this);

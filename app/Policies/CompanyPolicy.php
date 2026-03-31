@@ -2,14 +2,14 @@
 
 namespace App\Policies;
 
-use App\Models\Appointment;
+use App\Models\Company;
 use App\Models\User;
 
-class AppointmentPolicy
+class CompanyPolicy
 {
   public function before(User $user, string $ability): ?bool
   {
-    if ($user->role->name === 'owner' || $user->role->name === 'admin') {
+    if ($user->role->name === 'owner') {
       return true;
     }
 
@@ -21,15 +21,15 @@ class AppointmentPolicy
    */
   public function viewAny(User $user): bool
   {
-    return $user->role->name === 'employee';
+    return false;
   }
 
   /**
    * Determine whether the user can view the model.
    */
-  public function view(User $user, Appointment $appointment): bool
+  public function view(User $user, Company $company): bool
   {
-    return $user->role->name === 'employee';
+    return false;
   }
 
   /**
@@ -37,21 +37,21 @@ class AppointmentPolicy
    */
   public function create(User $user): bool
   {
-    return $user->role->name === 'employee';
+    return false;
   }
 
   /**
    * Determine whether the user can update the model.
    */
-  public function update(User $user, Appointment $appointment): bool
+  public function update(User $user, Company $company): bool
   {
-    return $appointment->user_uuid === $user->uuid;
+    return false;
   }
 
   /**
    * Determine whether the user can delete the model.
    */
-  public function delete(User $user, Appointment $appointment): bool
+  public function delete(User $user, Company $company): bool
   {
     return false;
   }
@@ -59,7 +59,7 @@ class AppointmentPolicy
   /**
    * Determine whether the user can restore the model.
    */
-  public function restore(User $user, Appointment $appointment): bool
+  public function restore(User $user, Company $company): bool
   {
     return false;
   }
@@ -67,7 +67,7 @@ class AppointmentPolicy
   /**
    * Determine whether the user can permanently delete the model.
    */
-  public function forceDelete(User $user, Appointment $appointment): bool
+  public function forceDelete(User $user, Company $company): bool
   {
     return false;
   }

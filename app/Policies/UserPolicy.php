@@ -8,74 +8,65 @@ class UserPolicy
 {
   public function before(User $user, string $ability): ?bool
   {
-    if ($user->role->name === 'Administrador') {
+    if ($user->role->name === 'owner') {
       return true;
     }
 
     return null;
   }
 
-  /**
-   * Determine whether the user can view any models.
-   */
+  private function targetIsOwner(User $model): bool
+  {
+    return $model->role->name === 'owner';
+  }
+
   public function viewAny(User $user): bool
   {
-    return false;
+    return $user->role->name === 'admin';
   }
 
-  /**
-   * Determine whether the user can view the model.
-   */
+  public function viewSelf(): bool
+  {
+    return true;
+  }
+
   public function view(User $user, User $model): bool
   {
-    return false;
+    return $user->role->name === 'admin';
   }
 
-  public function viewSelf(User $authUser, User $targetUser): bool
+  public function create(User $user, mixed $model = null): bool
   {
-    return $authUser->uuid === $targetUser->uuid;
+    return $user->role->name === 'admin';
   }
 
-  /**
-   * Determine whether the user can create models.
-   */
-  public function create(User $user): bool
+  public function update(User $authUser, mixed $model = null): bool
   {
-    return false;
+    if (!$model instanceof User) {
+      return $authUser->role->name === 'admin';
+    }
+
+    if ($this->targetIsOwner($model)) {
+      return false;
+    }
+
+    if ($model->role->name === 'admin' && $authUser->uuid !== $model->uuid) {
+      return false;
+    }
+
+    return $authUser->role->name === 'admin';
   }
 
-  /**
-   * Determine whether the user can update the model.
-   */
-  public function update(User $user, User $model): bool
-  {
-    return false;
-  }
-
-  public function updateAny(User $user): bool
-  {
-    return false;
-  }
-
-  /**
-   * Determine whether the user can delete the model.
-   */
   public function delete(User $user, User $model): bool
   {
     return false;
   }
 
-  /**
-   * Determine whether the user can restore the model.
-   */
   public function restore(User $user, User $model): bool
   {
     return false;
   }
 
-  /**
-   * Determine whether the user can permanently delete the model.
-   */
   public function forceDelete(User $user, User $model): bool
   {
     return false;

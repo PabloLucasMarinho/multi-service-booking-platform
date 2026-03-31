@@ -14,13 +14,14 @@ class RoleSeeder extends Seeder
   public function run(): void
   {
     $roles = [
+      'owner',
       'admin',
       'employee',
     ];
 
     foreach ($roles as $role) {
       DB::table('roles')->insert([
-        'uuid' => (string) Str::uuid(),
+        'uuid' => (string)Str::uuid(),
         'name' => $role,
         'created_at' => now(),
         'updated_at' => now(),

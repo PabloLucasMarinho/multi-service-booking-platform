@@ -21,8 +21,24 @@ return new class extends Migration {
       $table->foreignUuid('role_uuid')
         ->constrained('roles', 'uuid')
         ->cascadeOnDelete();
+      $table->string('document')->unique()->nullable();
+      $table->date('date_of_birth');
+      $table->string('phone', 20);
+      $table->string('zip_code');
+      $table->string('address');
+      $table->string('address_number')->nullable();
+      $table->string('address_complement')->nullable();
+      $table->string('neighborhood');
+      $table->string('city');
+      $table->string('state');
+      $table->decimal('salary', 10)->nullable();
+      $table->date('admission_date')->nullable();
       $table->rememberToken();
       $table->timestamps();
+      $table->foreignUuid('created_by')->nullable()
+        ->constrained('users', 'uuid')->nullOnDelete();
+      $table->foreignUuid('updated_by')->nullable()
+        ->constrained('users', 'uuid')->nullOnDelete();
       $table->softDeletes();
     });
 

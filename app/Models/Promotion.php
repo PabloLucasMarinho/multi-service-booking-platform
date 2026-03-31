@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\DiscountType;
 use App\Models\Traits\FormatsAttributes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -25,6 +26,18 @@ class Promotion extends Model
     'starts_at',
     'ends_at',
   ];
+
+  protected static function booted(): void
+  {
+    static::creating(function (Promotion $promotion) {
+      $promotion->created_by = auth()->user()?->uuid ?? null;
+      $promotion->updated_by = auth()->user()?->uuid ?? null;
+    });
+
+    static::updating(function (Promotion $promotion) {
+      $promotion->updated_by = auth()->user()?->uuid ?? null;
+    });
+  }
 
   public function categories(): BelongsToMany
   {
@@ -88,5 +101,27 @@ class Promotion extends Model
       DiscountType::Fixed => max(0, $price - $this->value),
       DiscountType::Percentage => $price * (1 - ($this->value / 100)),
     };
+  }
+
+  protected function typeFormatted(): Attribute
+  {
+    return Attribute::make(get: fn() => $this->type === DiscountType::Fixed ? 'Fixo' : 'Porcentagem');
+  }
+
+  protected function activeFormatted(): Attribute
+  {
+    return Attribute::make(get: fn() => $this->active === true ? 'Ativo' : 'Inativo');
+  }
+
+  protected function valueFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: function () {
+        if (!$this->value) return null;
+        return $this->type === DiscountType::Percentage
+          ? (float)$this->value . '%'
+          : 'R$' . number_format((float)$this->value, 2, ',', '.');
+      }
+    );
   }
 }

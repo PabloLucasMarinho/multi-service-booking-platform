@@ -39,29 +39,33 @@
       <tr>
         <td>{{$user->name}}</td>
         <td>{{$user->email}}</td>
-        <td>{{$user->role->name}}</td>
+        <td>{{$user->role->name_formatted}}</td>
         <td class="d-flex">
           <a href="{{ route('users.show', $user) }}" class="btn btn-primary mr-2" title="Ver">
             <i class="fas fa-xg fa-eye"></i>
           </a>
 
-          <a href="{{ route('users.edit', $user) }}" class="btn btn-info mr-2" title="Editar">
-            <i class="fas fa-xg fa-pen"></i>
-          </a>
+          @can('update', $user)
+            <a href="{{ route('users.edit', $user) }}" class="btn btn-info mr-2" title="Editar">
+              <i class="fas fa-xg fa-pen"></i>
+            </a>
+          @endcan
 
-          <x-adminlte-button
-            data-toggle="modal"
-            data-target="#removeClientModal"
-            theme="danger"
-            icon="fas fa-xg fa-trash-alt"
-            title="Apagar"
-          />
+          @can('delete', $user)
+            <x-adminlte-button
+              data-toggle="modal"
+              data-target="#removeUserModal-{{$user->uuid}}"
+              theme="danger"
+              icon="fas fa-xg fa-trash-alt"
+              title="Apagar"
+            />
+          @endcan
 
         </td>
       </tr>
 
       <x-adminlte-modal
-        id="removeClientModal" title="Apagar Cliente" theme="danger"
+        id="removeUserModal-{{$user->uuid}}" title="Apagar Cliente" theme="danger"
         icon="fas fa-trash" size="md"
       >
         <p>Tem certeza que quer apagar os dados de <strong>{{$user->name}}</strong>?</p>

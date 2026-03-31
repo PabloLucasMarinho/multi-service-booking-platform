@@ -23,15 +23,17 @@
         </div>
         <div>
           <p class="mb-0 font-weight-bold" style="font-size:18px;">{{ $user->name }}</p>
-          <small class="text-white">{{$user->role->name}}</small>
+          <small class="text-white">{{$user->role->name_formatted}}</small>
         </div>
       </div>
 
-      <div>
-        <a href="{{route('users.edit', $user)}}" class="btn btn-light">
-          <i class="fas fa-pen"></i>
-        </a>
-      </div>
+      @can('update', $user)
+        <div>
+          <a href="{{route('users.edit', $user)}}" class="btn btn-light">
+            <i class="fas fa-pen"></i>
+          </a>
+        </div>
+      @endcan
     </div>
 
     {{-- Dados Pessoais --}}
@@ -45,7 +47,7 @@
           <div class="col-md-4 p-3 border-right">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Data de
               Nascimento</p>
-            <strong>{{ $user->details->date_of_birth_formatted }}</strong>
+            <strong>{{ $user->date_of_birth_formatted }}</strong>
           </div>
           <div class="col-md-4 p-3 border-right">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">E-mail</p>
@@ -54,7 +56,7 @@
           <div class="col-md-4 p-3">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">
               Telefone</p>
-            <strong>{{ $user->details->phone_formatted }}</strong>
+            <strong>{{ $user->phone_formatted }}</strong>
           </div>
         </div>
       </div>
@@ -68,10 +70,10 @@
       </div>
       <div class="card-body p-3">
         <p class="mb-0 font-weight-bold">
-          {{ $user->details->address }}, {{ $user->details->address_complement }}
+          {{ $user->address }}, {{$user->address_number}}, {{ $user->address_complement }}
         </p>
         <small class="text-muted">
-          {{ $user->details->neighborhood }} · {{ $user->details->city }} · {{ $user->details->zip_code_formatted }}
+          {{ $user->neighborhood }} · {{ $user->city }} · {{$user->state}} · {{ $user->zip_code_formatted }}
         </small>
       </div>
     </div>
@@ -87,12 +89,12 @@
         <div class="row no-gutters">
           <div class="col-md-6 p-3 border-right">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Salário</p>
-            <span style="font-size:20px;font-weight:500;">R$ {{ $user->details->salary_formatted }}</span>
+            <span style="font-size:20px;font-weight:500;">R$ {{ $user->salary_formatted }}</span>
           </div>
           <div class="col-md-6 p-3">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Data de
               Admissão</p>
-            <span style="font-size:20px;font-weight:500;">{{ $user->details->admission_date_formatted }}</span>
+            <span style="font-size:20px;font-weight:500;">{{ $user->admission_date_formatted }}</span>
           </div>
         </div>
       </div>

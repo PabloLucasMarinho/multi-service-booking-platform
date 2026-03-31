@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Traits\FormatsAttributes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,18 @@ class Appointment extends Model
     'status'
   ];
 
+  protected static function booted(): void
+  {
+    static::creating(function (Appointment $appointment) {
+      $appointment->created_by = auth()->user()?->uuid ?? null;
+      $appointment->updated_by = auth()->user()?->uuid ?? null;
+    });
+
+    static::updating(function (Appointment $appointment) {
+      $appointment->updated_by = auth()->user()?->uuid ?? null;
+    });
+  }
+
   public function appointmentServices(): HasMany
   {
     return $this->hasMany(AppointmentService::class, 'appointment_uuid', 'uuid');
@@ -32,12 +45,14 @@ class Appointment extends Model
 
   public function client(): BelongsTo
   {
-    return $this->belongsTo(Client::class, 'client_uuid', 'uuid');
+    return $this->belongsTo(Client::class, 'client_uuid', 'uuid')
+      ->withoutGlobalScopes();
   }
 
   public function user(): BelongsTo
   {
-    return $this->belongsTo(User::class, 'user_uuid', 'uuid');
+    return $this->belongsTo(User::class, 'user_uuid', 'uuid')
+      ->withoutGlobalScopes();
   }
 
   protected $casts = [
@@ -65,6 +80,26 @@ class Appointment extends Model
     };
   }
 
+  // Remova do trait e adicione no model Appointment
+  protected function statusFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => match ($this->status) {
+        AppointmentStatus::Scheduled => 'Agendado',
+        AppointmentStatus::Completed => 'Concluído',
+        AppointmentStatus::Cancelled => 'Cancelado',
+        AppointmentStatus::NoShow => 'Não Compareceu',
+      }
+    );
+  }
+
+  protected function scheduledAtFormatted(): Attribute
+  {
+    return Attribute::make(
+      get: fn() => $this->formatDateTime($this->scheduled_at)
+    );
+  }
+
   public function getScheduledDateAttribute(): string
   {
     return $this->scheduled_at->format('d/m/Y');
@@ -73,6 +108,17 @@ class Appointment extends Model
   public function getScheduledTimeAttribute(): string
   {
     return $this->scheduled_at->format('H:i');
+  }
+
+  public function isEditable(): bool
+  {
+    return $this->status === AppointmentStatus::Scheduled;
+  }
+
+  public function canRestore(): bool
+  {
+    return $this->status === AppointmentStatus::Cancelled
+      && $this->scheduled_at->isFuture() || $this->scheduled_at->isToday();
   }
 
   public function getRouteKeyName(): string

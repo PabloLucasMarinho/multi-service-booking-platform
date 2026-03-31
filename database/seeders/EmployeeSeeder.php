@@ -21,17 +21,16 @@ class EmployeeSeeder extends Seeder
       'email_verified_at' => now(),
       'password' => bcrypt('Aa123456'),
       'role_uuid' => $employeeRoleUuid,
-    ]);
-
-    $user->details()->create([
       'document' => '31866473042',
       'date_of_birth' => '1990-08-05',
       'phone' => '21959736482',
       'address' => 'Rua do Funcionário, 456',
+      'address_number' => '456',
       'address_complement' => 'BL1 APT 101',
       'zip_code' => '67890321',
       'neighborhood' => 'Realengo',
       'city' => 'Rio de Janeiro',
+      'state' => 'RJ',
       'salary' => 1900.00,
       'admission_date' => '2025-06-01',
     ]);

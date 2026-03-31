@@ -45,9 +45,14 @@
         <td>{{$client->email}}</td>
         <td>{{$client->phone_formatted}}</td>
         <td class="d-flex">
-          <a href="#" class="btn btn-primary mr-2" title="Agendar">
-            <i class="fas fa-xg fa-calendar-alt"></i>
-          </a>
+          @can('create', App\Models\Appointment::class)
+            <a href="{{route('appointments.create', ['client' => $client->uuid])}}"
+               class="btn btn-primary mr-2"
+               title="Agendar"
+            >
+              <i class="fas fa-xg fa-calendar-alt"></i>
+            </a>
+          @endcan
           @can('update', $client)
             <a href="{{ route('clients.edit', $client) }}" class="btn btn-info mr-2" title="Editar">
               <i class="fas fa-xg fa-pen"></i>
@@ -57,7 +62,7 @@
           @can('delete', $client)
             <x-adminlte-button
               data-toggle="modal"
-              data-target="#removeClientModal"
+              data-target="#removeClientModal-{{$client->uuid}}"
               theme="danger"
               icon="fas fa-xg fa-trash-alt"
               title="Apagar"
@@ -67,7 +72,7 @@
       </tr>
 
       <x-adminlte-modal
-        id="removeClientModal" title="Apagar Cliente" theme="danger"
+        id="removeClientModal-{{$client->uuid}}" title="Apagar Cliente" theme="danger"
         icon="fas fa-trash" size="md"
       >
         <p>Tem certeza que quer apagar os dados de <strong>{{$client->name}}</strong>?</p>

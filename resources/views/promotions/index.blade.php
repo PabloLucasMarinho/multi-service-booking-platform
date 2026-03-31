@@ -68,7 +68,7 @@
 
           <x-adminlte-button
             data-toggle="modal"
-            data-target="#removeClientModal"
+            data-target="#removePromotionModal-{{$promotion->uuid}}"
             theme="danger"
             icon="fas fa-xg fa-trash-alt"
             title="Apagar"
@@ -77,7 +77,7 @@
       </tr>
 
       <x-adminlte-modal
-        id="removeClientModal" title="Apagar Promoção" theme="danger"
+        id="removePromotionModal-{{$promotion->uuid}}" title="Apagar Promoção" theme="danger"
         icon="fas fa-trash" size="md"
       >
         <p>Tem certeza que quer apagar os dados de <strong>{{$promotion->name}}</strong>?</p>

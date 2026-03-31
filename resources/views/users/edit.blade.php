@@ -38,7 +38,7 @@
           name="document"
           label="CPF *"
           placeholder="p.ex. 123.456.789-00"
-          value="{{$user->details->document}}"
+          value="{{$user->document}}"
           autocomplete="on"
           fgroup-class="col-md-6"
           required
@@ -57,7 +57,7 @@
         <x-adminlte-input-date
           id="date_of_birth" name="date_of_birth" :config="$config" label="Data de Nascimento *"
           placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
-          value="{{$user->details->date_of_birth_formatted}}"
+          value="{{$user->date_of_birth_formatted}}"
         >
           <x-slot name="prependSlot">
             <div class="input-group-text bg-dark-subtle">
@@ -87,7 +87,7 @@
           name="phone"
           label="Telefone"
           placeholder="p.ex. (21)91234-5678"
-          value="{{$user->details->phone_formatted}}"
+          value="{{$user->phone_formatted}}"
           autocomplete="tel-national"
           fgroup-class="col-md-4"
         >
@@ -105,9 +105,9 @@
           name="zip_code"
           label="CEP *"
           placeholder="p.ex. 32123-123"
-          value="{{$user->details->zip_code_formatted}}"
+          value="{{$user->zip_code_formatted}}"
           autocomplete="postal_code"
-          fgroup-class="col-md-2"
+          fgroup-class="col-md-1"
         />
 
         <x-adminlte-input
@@ -115,10 +115,20 @@
           name="address"
           label="Endereço *"
           placeholder="p.ex. Rua da Feira, 123"
-          value="{{$user->details->address}}"
+          value="{{$user->address}}"
           autocomplete="address-line1"
-          fgroup-class="col-md-4"
+          fgroup-class="col-md-3"
           required
+        />
+
+        <x-adminlte-input
+          id="address_number"
+          name="address_number"
+          label="Número"
+          placeholder="p.ex. 123"
+          value="{{$user->address_number}}"
+          autocomplete="off"
+          fgroup-class="col-md-1"
         />
 
         <x-adminlte-input
@@ -126,7 +136,7 @@
           name="address_complement"
           label="Complemento"
           placeholder="p.ex. Casa 1"
-          value="{{$user->details->address_complement}}"
+          value="{{$user->address_complement}}"
           autocomplete="address-line2"
           fgroup-class="col-md-2"
         />
@@ -136,7 +146,7 @@
           name="neighborhood"
           label="Bairro *"
           placeholder="p.ex. Realengo"
-          value="{{$user->details->neighborhood}}"
+          value="{{$user->neighborhood}}"
           autocomplete="address-line3"
           fgroup-class="col-md-2"
         />
@@ -146,31 +156,33 @@
           name="city"
           label="Cidade *"
           placeholder="p.ex. Rio de Janeiro"
-          value="{{$user->details->city}}"
+          value="{{$user->city}}"
           autocomplete="address-level2"
           fgroup-class="col-md-2"
         />
+
+
+        <x-adminlte-select name="state" label="Estado *" fgroup-class="col-md-1">
+          <x-adminlte-options
+            :options="collect(App\Enums\BrazilianState::cases())->pluck('value', 'value')->toArray()"
+            :selected="[old('state', $user->state)]"
+            placeholder="UF"
+          />
+        </x-adminlte-select>
       </div>
 
       <div class="row border border-dark-subtle rounded mb-2 pt-2">
-        <x-adminlte-select
-          name="role" label="Função" fgroup-class="col-md-4"
-        >
+        <x-adminlte-select name="role" label="Função *" fgroup-class="col-md-4">
           <x-slot name="prependSlot">
             <div class="input-group-text">
               <i class="fas fa-user-tag"></i>
             </div>
           </x-slot>
-          <option value="employee"
-            {{$user->role->name === 'Funcionário' ? 'selected' : ''}}
-          >
-            Funcionário
-          </option>
-          <option value="admin"
-            {{$user->role->name === 'Administrador' ? 'selected' : ''}}
-          >
-            Administrador
-          </option>
+          <x-adminlte-options
+            :options="$roles"
+            :selected="[old('role', $user->role->name)]"
+            placeholder="Selecione uma função..."
+          />
         </x-adminlte-select>
 
         <x-adminlte-input
@@ -178,7 +190,7 @@
           name="salary"
           label="Salário"
           placeholder="p.ex. 2.500,00"
-          value="{{$user->details->salary_formatted}}"
+          value="{{$user->salary_formatted}}"
           autocomplete="off"
           fgroup-class="col-md-4"
         >
@@ -201,7 +213,7 @@
         <x-adminlte-input-date
           id="admission_date" name="admission_date" :config="$config" label="Data de Admissão *"
           placeholder="Escolha uma data..." fgroup-class="col-md-4" autocomplete="off"
-          value="{{$user->details->admission_date_formatted}}"
+          value="{{$user->admission_date_formatted}}"
         >
           <x-slot name="prependSlot">
             <div class="input-group-text bg-dark-subtle">

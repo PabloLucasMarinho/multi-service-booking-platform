@@ -73,13 +73,14 @@
           @else
             <x-adminlte-options
               :options="$clients->pluck('name', 'uuid')->toArray()"
+              :selected="[$selectedClient ?? '']"
               placeholder="Escolha um cliente..."
             />
           @endif
         </x-adminlte-select>
 
         @php
-          $isDisabled = auth()->user()->cannot('updateAny', \App\Models\User::class);
+          $isDisabled = auth()->user()->cannot('update', \App\Models\User::class);
         @endphp
 
         @if($isDisabled)

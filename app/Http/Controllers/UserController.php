@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Gate;
@@ -37,7 +38,12 @@ class UserController extends Controller
   {
     Gate::authorize('create', User::class);
 
-    return view('users.create');
+    $roles = Role::whereIn('name', ['admin', 'employee'])
+      ->get()
+      ->pluck('name_formatted', 'name')
+      ->toArray();
+
+    return view('users.create', compact('roles'));
   }
 
   /**
@@ -93,7 +99,7 @@ class UserController extends Controller
       Gate::authorize('view', $user);
     }
 
-    $user->load('details');
+    $user->load('role');
 
     return view('users.show', compact('user'));
   }
@@ -105,9 +111,14 @@ class UserController extends Controller
   {
     Gate::authorize('update', $user);
 
-    $user->load('details', 'role');
+    $roles = Role::whereIn('name', ['admin', 'employee'])
+      ->get()
+      ->pluck('name_formatted', 'name')
+      ->toArray();
 
-    return view('users.edit', compact('user'));
+    $user->load('role');
+
+    return view('users.edit', compact('user', 'roles'));
   }
 
   /**
@@ -161,10 +172,6 @@ class UserController extends Controller
 
     $user->update([
       'email' => null,
-    ]);
-
-    $user->details()->withTrashed()->update([
-      'document' => null,
     ]);
 
     return response()->json(['success' => true]);

@@ -24,5 +24,6 @@ return [
   'monthly_appointments' => 'Agendamentos Mensais',
   'services' => 'Serviços',
   'password' => 'Alterar Senha',
-  'promotions' => 'Promoções'
+  'promotions' => 'Promoções',
+  'company' => 'Estabelecimento',
 ];

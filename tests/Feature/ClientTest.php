@@ -4,8 +4,8 @@ use App\Models\Client;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Rules\Cpf;
 use App\Rules\DateOfBirth;
+use App\Rules\Document;
 use App\Rules\Phone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -403,7 +403,7 @@ test('phone rule passes for valid phone', function () {
 });
 
 test('document rule passes for valid document', function () {
-  $rule = new Cpf();
+  $rule = new Document();
 
   $failCalled = false;
 
@@ -415,7 +415,7 @@ test('document rule passes for valid document', function () {
 });
 
 test('document rule fails for invalid document', function () {
-  $rule = new Cpf();
+  $rule = new Document();
 
   $failCalled = false;
 
@@ -427,7 +427,7 @@ test('document rule fails for invalid document', function () {
 });
 
 test('document rule fails for missing digits', function () {
-  $rule = new Cpf();
+  $rule = new Document();
 
   $failCalled = false;
 
@@ -439,7 +439,7 @@ test('document rule fails for missing digits', function () {
 });
 
 test('document rule fails for sequency of same digits', function () {
-  $rule = new Cpf();
+  $rule = new Document();
 
   $failCalled = false;
 
