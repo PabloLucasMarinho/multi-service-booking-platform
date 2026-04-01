@@ -55,10 +55,18 @@ class BookingService
       ]);
 
       $promotion = Promotion::active()
-        ->whereHas('categories', function ($query) use ($service) {
-          $query->whereIn('categories.uuid', $service->categories->pluck('uuid'));
+        ->where(function ($query) use ($service) {
+          $query->whereHas('categories', function ($q) use ($service) {
+            $q->whereIn('categories.uuid', $service->categories->pluck('uuid'));
+          })
+            ->orWhereDoesntHave('categories');
         })
-        ->orderByDesc('value')
+        ->get()
+        ->sortByDesc(function ($promo) use ($service) {
+          return $promo->type === DiscountType::Percentage
+            ? $service->price * ($promo->value / 100)
+            : $promo->value;
+        })
         ->first();
 
       if ($promotion) {

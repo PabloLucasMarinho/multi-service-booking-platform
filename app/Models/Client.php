@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Client extends Model
 {
@@ -19,7 +20,16 @@ class Client extends Model
   protected $keyType = 'string';
   public $incrementing = false;
 
-  protected $fillable = ['name', 'document', 'date_of_birth', 'email', 'phone', 'user_uuid'];
+  protected $fillable = [
+    'name',
+    'document',
+    'date_of_birth',
+    'email',
+    'phone',
+    'user_uuid',
+    'notifications_enabled',
+    'notification_token',
+  ];
 
   protected $casts = [
     'date_of_birth' => 'datetime',
@@ -28,6 +38,7 @@ class Client extends Model
   protected static function booted(): void
   {
     static::creating(function (Client $client) {
+      $client->notification_token = Str::uuid();
       $client->created_by = auth()->user()?->uuid ?? null;
       $client->updated_by = auth()->user()?->uuid ?? null;
     });

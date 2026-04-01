@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
@@ -18,24 +19,30 @@ Auth::routes();
 Route::middleware('auth')->group(function () {
   Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+  // CLIENTS
   Route::resource('clients', ClientController::class);
 
+  // USERS
   Route::resource('users', UserController::class);
   Route::delete('users/{uuid}/anonymize', [UserController::class, 'anonymize'])
     ->name('users.anonymize');
   Route::put('users/{uuid}/restore', [UserController::class, 'restore'])
     ->name('users.restore');
 
+  //SERVICES
   Route::resource('services', ServiceController::class);
 
+  //CATEGORIES
   Route::post('categories', [CategoryController::class, 'store'])
     ->name('categories.store');
   Route::delete('categories/{category:slug}',
     [CategoryController::class, 'destroy']
   )->name('categories.destroy');
 
+  // PROMOTIONS
   Route::resource('promotions', PromotionController::class);
 
+  // APPOINTMENTS
   Route::resource('appointments', AppointmentController::class);
   Route::get('monthly', [AppointmentController::class, 'monthly'])
     ->name('appointments.monthly');
@@ -55,6 +62,11 @@ Route::middleware('auth')->group(function () {
     [AppointmentController::class, 'restore']
   )->name('appointments.restore');
 
+  // COMPANY
   Route::get('company', [CompanyController::class, 'show'])->name('company.index');
   Route::post('company', [CompanyController::class, 'store'])->name('company.save');
 });
+
+// NOTIFICATIONS
+Route::get('/notifications/unsubscribe/{token}', [NotificationController::class, 'unsubscribe'])
+  ->name('notifications.unsubscribe');

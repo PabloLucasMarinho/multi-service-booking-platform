@@ -206,13 +206,15 @@
               </button>
             </form>
 
-            <form action="{{ route('appointments.complete', $appointment) }}" method="POST">
-              @method('PATCH')
-              @csrf
-              <button type="submit" class="btn btn-success btn-sm">
-                <i class="fas fa-check mr-1"></i> Concluir agendamento
-              </button>
-            </form>
+            @if(!$appointment->scheduled_at->isFuture())
+              <form action="{{ route('appointments.complete', $appointment) }}" method="POST">
+                @method('PATCH')
+                @csrf
+                <button type="submit" class="btn btn-success btn-sm">
+                  <i class="fas fa-check mr-1"></i> Concluir agendamento
+                </button>
+              </form>
+            @endif
           @elseif($appointment->canRestore())
             <form action="{{ route('appointments.restore', $appointment) }}" method="POST">
               @method('PATCH')

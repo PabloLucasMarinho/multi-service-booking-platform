@@ -24,7 +24,7 @@
           name="name"
           label="Razão Social *"
           placeholder="p.ex. Barbearia do João LTDA"
-          value="{{ old('name', $company->name) }}"
+          value="{!! old('name', $company->name) !!}"
           autocomplete="off"
           fgroup-class="col-md-6"
           required
@@ -35,7 +35,7 @@
           name="fantasy_name"
           label="Nome Fantasia"
           placeholder="p.ex. Barbearia do João"
-          value="{{ old('fantasy_name', $company->fantasy_name) }}"
+          value="{!! old('fantasy_name', $company->fantasy_name) !!}"
           autocomplete="off"
           fgroup-class="col-md-6"
         />

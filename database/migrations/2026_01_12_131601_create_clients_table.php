@@ -27,6 +27,8 @@ return new class extends Migration {
         ->constrained('users', 'uuid')->nullOnDelete();
       $table->foreignUuid('updated_by')->nullable()
         ->constrained('users', 'uuid')->nullOnDelete();
+      $table->string('notification_token')->nullable()->unique();
+      $table->boolean('notifications_enabled')->default(true);
       $table->softDeletes();
     });
   }

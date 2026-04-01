@@ -14,7 +14,18 @@ trait FormatsAttributes
   protected function name(): Attribute
   {
     return Attribute::make(
-      set: fn($value) => $this->formatName($value)
+      set: function ($value) {
+        return $this->formatName($value);
+      }
+    );
+  }
+
+  protected function fantasyName(): Attribute
+  {
+    return Attribute::make(
+      set: function ($value) {
+        return $this->formatName($value);
+      }
     );
   }
 
@@ -105,17 +116,19 @@ trait FormatsAttributes
       return $name;
     }
 
-    $name = mb_convert_case(trim($name), MB_CASE_TITLE, 'UTF-8');
+    $name = trim($name);
+    $name = mb_strtolower($name, 'UTF-8');
+    $name = implode(' ', array_map(
+      fn($word) => mb_strtoupper(mb_substr($word, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($word, 1, null, 'UTF-8'),
+      explode(' ', $name)
+    ));
 
-    $lower = [' De ', ' Da ', ' Do ', ' Dos ', ' Das ', ' E '];
+    $lower = ['De', 'Da', 'Do', 'Dos', 'Das', 'E'];
+    foreach ($lower as $word) {
+      $name = preg_replace('/\b' . $word . '\b/u', mb_strtolower($word, 'UTF-8'), $name);
+    }
 
-    $name = str_replace(
-      $lower,
-      array_map(fn($w) => mb_strtolower($w, 'UTF-8'), $lower),
-      " $name "
-    );
-
-    return trim($name);
+    return $name;
   }
 
   private function formatPhone(?string $phone): ?string

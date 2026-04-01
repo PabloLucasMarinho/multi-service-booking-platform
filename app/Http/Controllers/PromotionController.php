@@ -62,7 +62,7 @@ class PromotionController extends Controller
 
       return back()
         ->withInput()
-        ->with('error', 'Erro ao cadastrar funcionário. Tente novamente.');
+        ->with('error', 'Erro ao cadastrar promoção. Tente novamente.');
     }
   }
 
@@ -106,7 +106,7 @@ class PromotionController extends Controller
 
       return back()
         ->withInput()
-        ->with('error', 'Erro ao atualizar funcionário. Tente novamente.');
+        ->with('error', 'Erro ao atualizar promoção. Tente novamente.');
     }
   }
 
