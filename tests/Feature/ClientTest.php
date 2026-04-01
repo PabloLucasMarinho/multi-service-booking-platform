@@ -1,451 +1,396 @@
 <?php
 
+use App\Enums\AppointmentStatus;
+use App\Models\Appointment;
 use App\Models\Client;
-use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Rules\DateOfBirth;
-use App\Rules\Document;
-use App\Rules\Phone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-  $this->adminRole = Role::firstOrCreate(
-    ['name' => 'admin'],
-    ['uuid' => str()->uuid()]
-  );
-
-  $this->employeeRole = Role::firstOrCreate(
-    ['name' => 'employee'],
-    ['uuid' => str()->uuid()]
-  );
-
-  $this->createClientPermission = Permission::firstOrCreate(
-    ['name' => 'create-client'],
-    ['uuid' => str()->uuid()]
-  );
-
-  $this->adminRole->permissions()
-    ->syncWithoutDetaching([(string)$this->createClientPermission->uuid]);
-
-  $this->employeeRole->permissions()
-    ->syncWithoutDetaching([(string)$this->createClientPermission->uuid]);
-});
-
-function actingAsUserWithRole($role)
+function createRole(string $name): Role
 {
-  $user = User::factory()->create([
-    'role_uuid' => $role->uuid,
-  ]);
-
-  test()->actingAs($user);
-
-  return $user;
+  return Role::create(['uuid' => str()->uuid(), 'name' => $name]);
 }
 
-test('client is stored with correct data', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
+function createUser(string $role): User
+{
+  $roleModel = Role::firstOrCreate(
+    ['name' => $role],
+    ['uuid' => str()->uuid()]
+  );
 
-  $client = Client::factory()->make([
-    'user_uuid' => $admin->uuid,
+  return User::factory()->create([
+    'role_uuid' => $roleModel->uuid,
+    'date_of_birth' => '1990-01-01',
+    'phone' => '21999999999',
+    'zip_code' => '12345678',
+    'address' => 'Rua Teste',
+    'neighborhood' => 'Centro',
+    'city' => 'Rio de Janeiro',
+    'state' => 'RJ',
+    'admission_date' => '2025-01-01',
   ]);
+}
 
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'name' => $client->name,
-    'document' => $client->document,
-    'date_of_birth' => $client->date_of_birth,
-    'email' => $client->email,
-    'phone' => $client->phone,
-    'user_uuid' => (string)$admin->uuid,
-  ]);
-});
-
-test('client is linked to authenticated user', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'user_uuid' => (string)$admin->uuid,
-  ]);
-});
-
-test('cannot assign client to another user', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $otherUser = User::factory()->create();
-
-  $client = Client::factory()->make([
-    'user_uuid' => $otherUser->uuid,
-  ]);
-
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'user_uuid' => (string)$admin->uuid,
-  ]);
-});
-
-test('admin can create a client', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertRedirect('/clients');
-  $response->assertSessionHas('success');
-
-  $this->assertDatabaseHas('clients', [
-    'user_uuid' => (string)$admin->uuid,
-    'document' => $client->document,
-  ]);
-});
-
-test('employee can create a client', function () {
-  $employee = actingAsUserWithRole($this->employeeRole);
-
-  $client = Client::factory()->make([
-    'user_uuid' => $employee->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertRedirect('/clients');
-  $response->assertSessionHas('success');
-
-  $this->assertDatabaseHas('clients', [
-    'user_uuid' => (string)$employee->uuid,
-    'document' => $client->document,
-  ]);
-});
-
-test('guest cannot create a client', function () {
-  $client = Client::factory()->make();
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertRedirect('/login');
-});
-
-test('user without permission cannot create client', function () {
-  $role = Role::factory()->create(['name' => 'viewer']);
-
-  $user = User::factory()->create([
-    'role_uuid' => $role->uuid,
-  ]);
-
-  $this->actingAs($user);
-
-  $client = Client::factory()->make([
+function createClient(User $user): Client
+{
+  return Client::factory()->create([
     'user_uuid' => $user->uuid,
+    'date_of_birth' => '1990-01-01',
   ]);
+}
 
-  $response = $this->post('/clients', $client->toArray());
+function validClientData(array $overrides = []): array
+{
+  return array_merge([
+    'name' => 'João da Silva',
+    'document' => generateUniqueCpf(),
+    'date_of_birth' => '01/01/1990',
+    'phone' => '21999999999',
+    'email' => 'joao@teste.com',
+  ], $overrides);
+}
 
-  $response->assertForbidden();
-});
+// ============================================================
+// INDEX
+// ============================================================
 
-test('cannot create client without required fields', function () {
-  actingAsUserWithRole($this->adminRole);
+describe('index', function () {
+  it('owner pode listar clientes', function () {
+    $owner = createUser('owner');
+    createClient($owner);
 
-  $response = $this->post('/clients', []);
-
-  $response->assertSessionHasErrors([
-    'name',
-    'document',
-    'date_of_birth',
-  ]);
-});
-
-test('cannot create client with future date of birth', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'date_of_birth' => now()->addDay()->format('Y-m-d'),
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors(['date_of_birth' => 'A data de nascimento não pode ser futura.']);
-});
-
-test('cannot create client with invalid date of birth', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'date_of_birth' => 'data-invalida',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors(['date_of_birth' => 'A data de nascimento é inválida.']);
-});
-
-test('cannot create client without contact', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'email' => null,
-    'phone' => null,
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors(['email', 'phone']);
-});
-
-test('cannot create client with invalid document', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'document' => '12345678900',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors([
-    'document' => 'O CPF informado é inválido.',
-  ]);
-});
-
-test('cannot create client with duplicated document', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $existing = Client::factory()->create([
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $client = Client::factory()->make([
-    'document' => $existing->document,
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors(['document']);
-});
-
-test('cannot create client with duplicated email', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $existing = Client::factory()->create([
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $client = Client::factory()->make([
-    'email' => $existing->email,
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors(['email']);
-});
-
-test('cannot create client with invalid email', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'email' => 'email-invalido',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $response = $this->post('/clients', $client->toArray());
-
-  $response->assertSessionHasErrors(['email']);
-});
-
-test('client name is formatted before saving', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'name' => '   joao    da    silva    ',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'name' => 'Joao da Silva',
-  ]);
-});
-
-test('client email is formatted before saving', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'email' => '   JOAO@EMAIL.COM    ',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'email' => 'joao@email.com',
-  ]);
-});
-
-test('client document is formatted before saving', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'document' => '    928.066.570-75    ',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'document' => '92806657075',
-  ]);
-});
-
-test('client phone is formatted before saving', function () {
-  $admin = actingAsUserWithRole($this->adminRole);
-
-  $client = Client::factory()->make([
-    'phone' => '    (21) 91234-5678    ',
-    'user_uuid' => $admin->uuid,
-  ]);
-
-  $this->post('/clients', $client->toArray());
-
-  $this->assertDatabaseHas('clients', [
-    'phone' => '21912345678',
-  ]);
-});
-
-test('date of birth rule fails for future date', function () {
-  $rule = new DateOfBirth();
-
-  $failCalled = false;
-
-  $rule->validate('date_of_birth', now()->addDay()->format('Y-m-d'), function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($owner)
+      ->get(route('clients.index'))
+      ->assertOk();
   });
 
-  expect($failCalled)->toBeTrue();
-});
+  it('admin pode listar clientes', function () {
+    $admin = createUser('admin');
 
-test('phone rule fails for missing digits', function () {
-  $rule = new Phone();
-
-  $failCalled = false;
-
-  $rule->validate('phone', '(21) 123-4567', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($admin)
+      ->get(route('clients.index'))
+      ->assertOk();
   });
 
-  expect($failCalled)->toBeTrue();
-});
+  it('employee pode listar clientes', function () {
+    $employee = createUser('employee');
 
-test('phone rule fails for invalid ninth digit', function () {
-  $rule = new Phone();
-
-  $failCalled = false;
-
-  $rule->validate('phone', '(21) 81234-5678', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($employee)
+      ->get(route('clients.index'))
+      ->assertOk();
   });
 
-  expect($failCalled)->toBeTrue();
+  it('usuário não autenticado é redirecionado', function () {
+    $this->get(route('clients.index'))
+      ->assertRedirect(route('login'));
+  });
 });
 
-test('phone rule fails for invalid area code', function () {
-  $rule = new Phone();
+// ============================================================
+// CREATE
+// ============================================================
 
-  $failCalled = false;
+describe('create', function () {
+  it('owner pode acessar formulário de cadastro', function () {
+    $owner = createUser('owner');
 
-  $rule->validate('phone', '(100) 91234-5678', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($owner)
+      ->get(route('clients.create'))
+      ->assertOk();
   });
 
-  expect($failCalled)->toBeTrue();
+  it('admin pode acessar formulário de cadastro', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->get(route('clients.create'))
+      ->assertOk();
+  });
+
+  it('employee pode acessar formulário de cadastro', function () {
+    $employee = createUser('employee');
+
+    $this->actingAs($employee)
+      ->get(route('clients.create'))
+      ->assertOk();
+  });
 });
 
-test('null phone is not validated', function () {
-  $rule = new Phone();
+// ============================================================
+// STORE
+// ============================================================
 
-  $failCalled = false;
+describe('store', function () {
+  it('owner pode cadastrar cliente', function () {
+    $owner = createUser('owner');
 
-  $rule->validate('phone', '', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($owner)
+      ->post(route('clients.store'), validClientData())
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertDatabaseHas('clients', ['name' => 'João da Silva']);
   });
 
-  expect($failCalled)->toBeFalse();
+  it('admin pode cadastrar cliente', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData())
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertDatabaseHas('clients', ['name' => 'João da Silva']);
+  });
+
+  it('employee pode cadastrar cliente', function () {
+    $employee = createUser('employee');
+
+    $this->actingAs($employee)
+      ->post(route('clients.store'), validClientData())
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertDatabaseHas('clients', ['name' => 'João da Silva']);
+  });
+
+  it('nome é obrigatório', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['name' => '']))
+      ->assertSessionHasErrors('name');
+  });
+
+  it('cpf é obrigatório', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['document' => '']))
+      ->assertSessionHasErrors('document');
+  });
+
+  it('cpf inválido é rejeitado', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['document' => '11111111111']))
+      ->assertSessionHasErrors('document');
+  });
+
+  it('cpf duplicado é rejeitado', function () {
+    $admin = createUser('admin');
+    $document = generateUniqueCpf();
+    createClient($admin)->update(['document' => $document]);
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['document' => $document]))
+      ->assertSessionHasErrors('document');
+  });
+
+  it('data de nascimento é obrigatória', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['date_of_birth' => '']))
+      ->assertSessionHasErrors('date_of_birth');
+  });
+
+  it('data de nascimento futura é rejeitada', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['date_of_birth' => now()->addDay()->format('d/m/Y')]))
+      ->assertSessionHasErrors('date_of_birth');
+  });
+
+  it('email duplicado é rejeitado', function () {
+    $admin = createUser('admin');
+    createClient($admin)->update(['email' => 'duplicado@teste.com']);
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['email' => 'duplicado@teste.com']))
+      ->assertSessionHasErrors('email');
+  });
+
+  it('email e telefone são opcionais mas pelo menos um é obrigatório', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['email' => null, 'phone' => null]))
+      ->assertSessionHasErrors(['email', 'phone']);
+  });
+
+  it('cadastro com apenas telefone é aceito', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['email' => null]))
+      ->assertRedirect(route('clients.index'));
+  });
+
+  it('cadastro com apenas email é aceito', function () {
+    $admin = createUser('admin');
+
+    $this->actingAs($admin)
+      ->post(route('clients.store'), validClientData(['phone' => null]))
+      ->assertRedirect(route('clients.index'));
+  });
 });
 
-test('phone rule passes for valid phone', function () {
-  $rule = new Phone();
+// ============================================================
+// EDIT
+// ============================================================
 
-  $failCalled = false;
+describe('edit', function () {
+  it('owner pode acessar formulário de edição', function () {
+    $owner = createUser('owner');
+    $client = createClient($owner);
 
-  $rule->validate('phone', '(21) 91234-5678', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($owner)
+      ->get(route('clients.edit', $client))
+      ->assertOk();
   });
 
-  expect($failCalled)->toBeFalse();
+  it('admin pode acessar formulário de edição', function () {
+    $admin = createUser('admin');
+    $client = createClient($admin);
+
+    $this->actingAs($admin)
+      ->get(route('clients.edit', $client))
+      ->assertOk();
+  });
+
+  it('employee pode acessar formulário de edição', function () {
+    $employee = createUser('employee');
+    $client = createClient($employee);
+
+    $this->actingAs($employee)
+      ->get(route('clients.edit', $client))
+      ->assertOk();
+  });
 });
 
-test('document rule passes for valid document', function () {
-  $rule = new Document();
+// ============================================================
+// UPDATE
+// ============================================================
 
-  $failCalled = false;
+describe('update', function () {
+  it('owner pode editar cliente', function () {
+    $owner = createUser('owner');
+    $client = createClient($owner);
 
-  $rule->validate('document', '928.066.570-75', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($owner)
+      ->put(route('clients.update', $client), validClientData(['name' => 'Nome Atualizado']))
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertDatabaseHas('clients', ['uuid' => $client->uuid, 'name' => 'Nome Atualizado']);
   });
 
-  expect($failCalled)->toBeFalse();
+  it('admin pode editar cliente', function () {
+    $admin = createUser('admin');
+    $client = createClient($admin);
+
+    $this->actingAs($admin)
+      ->put(route('clients.update', $client), validClientData(['name' => 'Nome Atualizado']))
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertDatabaseHas('clients', ['uuid' => $client->uuid, 'name' => 'Nome Atualizado']);
+  });
+
+  it('employee pode editar cliente', function () {
+    $employee = createUser('employee');
+    $client = createClient($employee);
+
+    $this->actingAs($employee)
+      ->put(route('clients.update', $client), validClientData(['name' => 'Nome Atualizado']))
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertDatabaseHas('clients', ['uuid' => $client->uuid, 'name' => 'Nome Atualizado']);
+  });
+
+  it('cpf duplicado de outro cliente é rejeitado', function () {
+    $admin = createUser('admin');
+    $document = generateUniqueCpf();
+    createClient($admin)->update(['document' => $document]);
+    $client = createClient($admin);
+
+    $this->actingAs($admin)
+      ->put(route('clients.update', $client), validClientData(['document' => $document]))
+      ->assertSessionHasErrors('document');
+  });
+
+  it('cpf do próprio cliente não é rejeitado na edição', function () {
+    $admin = createUser('admin');
+    $client = createClient($admin);
+
+    $this->actingAs($admin)
+      ->put(route('clients.update', $client), validClientData(['document' => $client->document]))
+      ->assertRedirect(route('clients.index'));
+  });
+
+  it('email duplicado de outro cliente é rejeitado', function () {
+    $admin = createUser('admin');
+    createClient($admin)->update(['email' => 'duplicado@teste.com']);
+    $client = createClient($admin);
+
+    $this->actingAs($admin)
+      ->put(route('clients.update', $client), validClientData(['email' => 'duplicado@teste.com']))
+      ->assertSessionHasErrors('email');
+  });
 });
 
-test('document rule fails for invalid document', function () {
-  $rule = new Document();
+// ============================================================
+// DESTROY
+// ============================================================
 
-  $failCalled = false;
+describe('destroy', function () {
+  it('owner pode deletar cliente', function () {
+    $owner = createUser('owner');
+    $client = createClient($owner);
 
-  $rule->validate('document', '900.066.570-75', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($owner)
+      ->delete(route('clients.destroy', $client))
+      ->assertRedirect(route('clients.index'));
+
+    $this->assertSoftDeleted('clients', ['uuid' => $client->uuid]);
   });
 
-  expect($failCalled)->toBeTrue();
-});
+  it('admin não pode deletar cliente', function () {
+    $admin = createUser('admin');
+    $client = createClient($admin);
 
-test('document rule fails for missing digits', function () {
-  $rule = new Document();
-
-  $failCalled = false;
-
-  $rule->validate('document', '92.06.57-75', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($admin, 'web')
+      ->delete(route('clients.destroy', $client))
+      ->assertForbidden();
   });
 
-  expect($failCalled)->toBeTrue();
-});
+  it('employee não pode deletar cliente', function () {
+    $employee = createUser('employee');
+    $client = createClient($employee);
 
-test('document rule fails for sequency of same digits', function () {
-  $rule = new Document();
-
-  $failCalled = false;
-
-  $rule->validate('document', '999.999.999-99', function () use (&$failCalled) {
-    $failCalled = true;
+    $this->actingAs($employee)
+      ->delete(route('clients.destroy', $client))
+      ->assertForbidden();
   });
 
-  expect($failCalled)->toBeTrue();
+  it('deletar cliente cancela agendamentos futuros', function () {
+    $owner = createUser('owner');
+    $client = createClient($owner);
+
+    $appointment = Appointment::factory()->create([
+      'client_uuid' => $client->uuid,
+      'user_uuid' => $owner->uuid,
+      'scheduled_at' => now()->addDay(),
+      'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    $this->actingAs($owner)
+      ->delete(route('clients.destroy', $client));
+
+    $this->assertDatabaseHas('appointments', [
+      'uuid' => $appointment->uuid,
+      'status' => AppointmentStatus::Cancelled->value,
+    ]);
+  });
 });

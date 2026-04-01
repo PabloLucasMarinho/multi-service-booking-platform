@@ -46,6 +46,13 @@ class AppServiceProvider extends ServiceProvider
       $event->menu->add(['header' => 'main_navigation']);
 
       $event->menu->add([
+        'text' => 'dashboard',
+        'route' => 'home',
+        'icon' => 'fas fa-fw fa-chart-pie',
+        'active' => ['dashboard'],
+      ]);
+
+      $event->menu->add([
         'text' => 'appointments',
         'route' => 'appointments.index',
         'icon' => 'fas fa-fw fa-clock',

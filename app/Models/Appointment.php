@@ -6,13 +6,14 @@ use App\Enums\AppointmentStatus;
 use App\Models\Traits\FormatsAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Appointment extends Model
 {
-  use HasUuids, FormatsAttributes;
+  use HasUuids, HasFactory, FormatsAttributes;
 
   protected $primaryKey = 'uuid';
   protected $keyType = 'string';

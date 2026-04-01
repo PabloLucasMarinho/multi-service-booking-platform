@@ -27,7 +27,7 @@ class CompanyPolicy
   /**
    * Determine whether the user can view the model.
    */
-  public function view(User $user, Company $company): bool
+  public function view(User $user, mixed $company = null): bool
   {
     return false;
   }
@@ -43,7 +43,7 @@ class CompanyPolicy
   /**
    * Determine whether the user can update the model.
    */
-  public function update(User $user, Company $company): bool
+  public function update(User $user, mixed $company = null): bool
   {
     return false;
   }

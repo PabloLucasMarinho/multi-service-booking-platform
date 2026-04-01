@@ -131,7 +131,7 @@ class UserController extends Controller
     try {
       $this->userService->update($request->validated(), $user);
 
-      if ($user->uuid === auth()->user()->uuid) {
+      if ((string)$user->uuid === (string)auth()->user()->uuid) {
         return redirect()
           ->route('users.show', $user)
           ->with('success', 'Cadastro alterado com sucesso!');

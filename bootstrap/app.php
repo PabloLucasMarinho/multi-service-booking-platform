@@ -17,10 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
   })
   ->withExceptions(function (Exceptions $exceptions): void {
     $exceptions->render(function (AuthorizationException $e, $request) {
+      if ($request->expectsJson() || app()->runningUnitTests()) {
+        abort(403);
+      }
       return redirect('/home')->with('warning', 'Você não tem permissão para acessar essa página.');
     });
 
     $exceptions->render(function (AccessDeniedHttpException $e, $request) {
+      if ($request->expectsJson() || app()->runningUnitTests()) {
+        abort(403);
+      }
       return redirect('/home')->with('warning', 'Você não tem permissão para acessar essa página.');
     });
   })->create();

@@ -26,4 +26,5 @@ return [
   'password' => 'Alterar Senha',
   'promotions' => 'Promoções',
   'company' => 'Estabelecimento',
+  'dashboard' => 'Dashboard',
 ];

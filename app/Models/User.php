@@ -70,6 +70,11 @@ class User extends Authenticatable
     });
   }
 
+  public function getAuthIdentifier(): string
+  {
+    return (string)$this->uuid;
+  }
+
   public function getAuthIdentifierName(): string
   {
     return 'uuid';

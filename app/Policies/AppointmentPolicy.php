@@ -35,9 +35,17 @@ class AppointmentPolicy
   /**
    * Determine whether the user can create models.
    */
-  public function create(User $user): bool
+  public function create(User $user, mixed $appointment = null): bool
   {
-    return $user->role->name === 'employee';
+    if (!$appointment instanceof Appointment) {
+      return in_array($user->role->name, ['admin', 'employee']);
+    }
+
+    if ($user->role->name === 'employee') {
+      return (string)$appointment->user_uuid === (string)$user->uuid;
+    }
+
+    return false;
   }
 
   /**
@@ -45,7 +53,7 @@ class AppointmentPolicy
    */
   public function update(User $user, Appointment $appointment): bool
   {
-    return $appointment->user_uuid === $user->uuid;
+    return (string)$appointment->user_uuid === (string)$user->uuid;
   }
 
   /**

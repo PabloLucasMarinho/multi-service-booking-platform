@@ -25,9 +25,9 @@ class UserPolicy
     return $user->role->name === 'admin';
   }
 
-  public function viewSelf(): bool
+  public function viewSelf(User $authUser, User $targetUser): bool
   {
-    return true;
+    return (string)$authUser->uuid === (string)$targetUser->uuid;
   }
 
   public function view(User $user, User $model): bool
@@ -50,7 +50,7 @@ class UserPolicy
       return false;
     }
 
-    if ($model->role->name === 'admin' && $authUser->uuid !== $model->uuid) {
+    if ($model->role->name === 'admin' && (string)$authUser->uuid !== (string)$model->uuid) {
       return false;
     }
 

@@ -91,7 +91,7 @@ class PromotionController extends Controller
    */
   public function update(UpdatePromotionRequest $request, Promotion $promotion)
   {
-    Gate::authorize('update', Promotion::class);
+    Gate::authorize('update', $promotion);
 
     try {
       $this->promotionService->update($request->validated(), $promotion);

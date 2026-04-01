@@ -12,6 +12,7 @@ class Company extends Model
   protected $table = 'company';
 
   protected $fillable = [
+    'id',
     'name',
     'fantasy_name',
     'document',

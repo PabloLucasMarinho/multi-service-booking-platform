@@ -32,7 +32,7 @@ class ServicePolicy
       return false;
     }
 
-    return $service->created_by === $user->uuid;
+    return (string)$service->created_by === (string)$user->uuid;
   }
 
   public function delete(User $user, Service $service): bool
