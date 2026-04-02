@@ -1,59 +1,209 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Multi-Service Booking Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web de agendamentos para estabelecimentos de serviços como barbearias, salões de beleza, estúdios de tatuagens e
+etc. Desenvolvido com Laravel 12, oferece controle completo de agendamentos, clientes, funcionários, promoções e
+relatórios gerenciais.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Screenshots
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Dashboard
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+![Dashboard](screenshots/dashboard.png)
 
-## Learning Laravel
+### Agendamentos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+![Agendamentos](screenshots/appointments.png)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Detalhe do Agendamento
 
-## Laravel Sponsors
+![Detalhe do Agendamento](screenshots/appointment-show.png)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Calendário Mensal
 
-### Premium Partners
+![Calendário Mensal](screenshots/calendar.png)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Relatórios — Financeiro
 
-## Contributing
+![Relatórios Financeiro](screenshots/reports-financial.png)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Relatórios — Operacional
 
-## Code of Conduct
+![Relatórios Operacional](screenshots/reports-operational.png)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Relatórios — Clientes
 
-## Security Vulnerabilities
+![Relatórios Clientes](screenshots/reports-clients.png)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Relatórios — Promoções
 
-## License
+![Relatórios Promoções](screenshots/reports-promotions.png)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Perfil do Usuário
+
+![Perfil](screenshots/profile.png)
+
+### Diagrama Entidade Relacionamento
+
+![Diagrama Entidade Relacionamento](screenshots/booking-platform.jpg)
+
+---
+
+## Funcionalidades
+
+- **Agendamentos** — criação, edição, cancelamento e conclusão de agendamentos com visualização em lista e calendário
+  mensal
+- **Serviços** — cadastro de serviços com categorias e preços
+- **Clientes** — cadastro e gerenciamento de clientes com histórico de atendimentos
+- **Funcionários** — controle de equipe com hierarquia de permissões (Dono, Administrador, Funcionário)
+- **Promoções** — criação de promoções por categoria ou globais com aplicação automática nos agendamentos
+- **Descontos** — suporte a desconto por promoção e desconto manual (fixo ou percentual) por serviço
+- **Recibo em PDF** — geração de recibo ao concluir um atendimento
+- **Dashboard** — visão geral do mês com faturamento, agendamentos do dia e resumo geral
+- **Relatórios** — relatórios financeiros, operacionais, de clientes e de promoções com filtro por período
+- **Notificações** — envio automático de e-mail e SMS aos clientes ao cadastrar uma nova promoção, com opção de opt-out
+- **Estabelecimento** — cadastro dos dados do estabelecimento utilizados nos recibos e notificações
+
+---
+
+## Tecnologias
+
+- **Backend:** PHP 8.4, Laravel 12
+- **Frontend:** AdminLTE 3, Bootstrap 4, jQuery, DataTables, InputMask, Tempus Dominus
+- **Banco de dados:** MySQL
+- **Filas:** Laravel Queue com driver `database`
+- **E-mail:** Resend
+- **SMS:** Twilio
+- **PDF:** Barryvdh DomPDF
+
+---
+
+## Requisitos
+
+- PHP >= 8.4
+- Composer
+- MySQL
+- Node.js (para assets)
+- Conta no [Resend](https://resend.com) para envio de e-mails
+- Conta no [Twilio](https://twilio.com) para envio de SMS
+
+---
+
+## Instalação
+
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/multi-service-booking-platform.git
+cd multi-service-booking-platform
+
+# Instale as dependências PHP
+composer install
+
+# Copie o arquivo de ambiente
+cp .env.example .env
+
+# Gere a chave da aplicação
+php artisan key:generate
+
+# Configure o banco de dados no .env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=db_booking
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Configure o e-mail (Resend)
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS=onboarding@resend.dev
+MAIL_FROM_NAME="Booking Platform"
+RESEND_API_KEY=re_xxxxxxxxxxxx
+
+# Configure o SMS (Twilio)
+TWILIO_SID=ACxxxxxxxxxxxx
+TWILIO_TOKEN=xxxxxxxxxxxx
+TWILIO_FROM=+1xxxxxxxxxx
+
+# Configure a fila
+QUEUE_CONNECTION=database
+
+# Execute as migrations e seeds
+php artisan migrate --seed
+```
+
+---
+
+## Uso
+
+```bash
+# Inicie o servidor de desenvolvimento
+php artisan serve
+
+# Em outro terminal, inicie o worker de filas (necessário para notificações)
+php artisan queue:work
+```
+
+Acesse `http://localhost:8000` e faça login com as credenciais do seed:
+
+| Perfil        | E-mail             | Senha    |
+|---------------|--------------------|----------|
+| Dono          | owner@email.com    | Aa123456 |
+| Administrador | admin@email.com    | Aa123456 |
+| Funcionário   | employee@email.com | Aa123456 |
+
+---
+
+## Hierarquia de Permissões
+
+| Funcionalidade  | Dono | Admin | Funcionário |
+|-----------------|:----:|:-----:|:-----------:|
+| Dashboard       |  ✓   |   ✓   |      ✓      |
+| Agendamentos    |  ✓   |   ✓   |      ✓      |
+| Clientes        |  ✓   |   ✓   |      ✓      |
+| Funcionários    |  ✓   |   ✓   |      —      |
+| Serviços        |  ✓   |   ✓   |     Ver     |
+| Promoções       |  ✓   |   —   |      —      |
+| Relatórios      |  ✓   |   —   |      —      |
+| Estabelecimento |  ✓   |   —   |      —      |
+
+---
+
+## Testes
+
+```bash
+php artisan test
+```
+
+Os testes cobrem controllers, policies e regras de validação para todas as entidades do sistema.
+
+---
+
+## Estrutura do Banco de Dados
+
+| Tabela                 | Descrição                                      |
+|------------------------|------------------------------------------------|
+| `users`                | Usuários do sistema (dono, admin, funcionário) |
+| `roles`                | Perfis de acesso                               |
+| `clients`              | Clientes do estabelecimento                    |
+| `appointments`         | Agendamentos                                   |
+| `appointment_services` | Serviços vinculados a um agendamento           |
+| `services`             | Serviços oferecidos                            |
+| `categories`           | Categorias de serviços                         |
+| `promotions`           | Promoções com desconto fixo ou percentual      |
+| `company`              | Dados do estabelecimento                       |
+
+---
+
+## Licença
+
+Este projeto foi desenvolvido sob encomenda e é de uso proprietário.
+
+---
+
+## Contato
+
+Desenvolvido por **Pablo Marinho**
+
+- 📧 contatopablomarinho@gmail.com
+- 📱 (21) 99157-1242
