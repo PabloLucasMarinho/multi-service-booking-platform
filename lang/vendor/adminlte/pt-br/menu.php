@@ -27,4 +27,5 @@ return [
   'promotions' => 'Promoções',
   'company' => 'Estabelecimento',
   'dashboard' => 'Dashboard',
+  'reports' => 'Relatórios',
 ];

@@ -11,9 +11,11 @@ use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\ClientPolicy;
 use App\Policies\PromotionPolicy;
+use App\Policies\ReportPolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use JeroenNoten\LaravelAdminLte\Events\BuildingMenu;
 
@@ -40,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
    */
   public function boot(): void
   {
+    Gate::define('viewReports', function (User $user) {
+      $policy = new ReportPolicy();
+      return $policy->before($user, 'viewAny') ?? $policy->viewAny($user);
+    });
+
     Event::listen(BuildingMenu::class, function (BuildingMenu $event) {
       $isOwnProfile = auth()->check() && request()->route('user')?->is(auth()->user());
 
@@ -104,6 +111,14 @@ class AppServiceProvider extends ServiceProvider
         'active' => ['promotions', 'promotions*'],
         'can' => 'viewAny',
         'model' => Promotion::class,
+      ]);
+
+      $event->menu->add([
+        'text' => 'reports',
+        'route' => 'reports.index',
+        'icon' => 'fas fa-fw fa-chart-bar',
+        'active' => ['reports'],
+        'can' => 'viewReports'
       ]);
 
       $event->menu->add(['header' => 'Configurações da Conta']);

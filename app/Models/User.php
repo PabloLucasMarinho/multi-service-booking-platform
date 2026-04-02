@@ -7,6 +7,7 @@ use App\Models\Traits\FormatsAttributes;
 use App\Models\Traits\ModelsDefaults;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -88,6 +89,11 @@ class User extends Authenticatable
   public function role(): BelongsTo
   {
     return $this->belongsTo(Role::class, 'role_uuid', 'uuid');
+  }
+
+  public function appointments(): HasMany
+  {
+    return $this->hasMany(Appointment::class, 'user_uuid', 'uuid');
   }
 
   public function adminlte_desc(): string
