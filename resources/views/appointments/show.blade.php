@@ -80,6 +80,8 @@
                   @endforeach
                 </select>
               </div>
+              @php $canDiscount = auth()->user()->can_apply_manual_discount || auth()->user()->role->name === 'owner'; @endphp
+              @if($canDiscount)
               <div class="col-md-3">
                 <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Desconto</label>
                 <select name="manual_discount_type" class="form-control form-control-sm">
@@ -93,7 +95,8 @@
                 <input type="text" name="manual_discount_value" id="discount-value" class="form-control form-control-sm"
                        placeholder="0,00"/>
               </div>
-              <div class="col-md-2">
+              @endif
+              <div class="{{ $canDiscount ? 'col-md-2' : 'col-md-7' }}">
                 <button type="submit" class="btn btn-success btn-sm btn-block">
                   <i class="fas fa-plus mr-1"></i> Adicionar
                 </button>
@@ -143,14 +146,20 @@
               </td>
               <td class="text-right align-middle">
                 @if($appointmentService->manual_discount_amount)
-                  <span class="badge" style="background:#fff3e0;color:#e65100;font-size:11px;border-radius:20px;">
-                  @if($appointmentService->manual_discount_type?->value === 'percentage')
-                      {{ number_format($appointmentService->manual_discount_value, 2, ',', '.') }}% —
+                  @php $capped = $appointmentService->isDiscountCapped($company?->max_discount_percentage); @endphp
+                  <span class="badge" style="background:{{ $capped ? '#fce4ec' : '#fff3e0' }};color:{{ $capped ? '#b71c1c' : '#e65100' }};font-size:11px;border-radius:20px;user-select:none;">
+                    @if($appointmentService->manual_discount_type?->value === 'percentage')
+                      @if($capped)<s>{{ number_format($appointmentService->manual_discount_value, 2, ',', '.') }}%</s>@else{{ number_format($appointmentService->manual_discount_value, 2, ',', '.') }}%@endif —
                       R$ {{ number_format($appointmentService->manual_discount_amount, 2, ',', '.') }}
                     @else
                       R$ {{ number_format($appointmentService->manual_discount_amount, 2, ',', '.') }} fixo
                     @endif
-                </span>
+                  </span>
+                  @if($capped)
+                    <span class="css-tooltip" style="display:inline-block;position:relative;vertical-align:middle;" data-tip="Teto de {{ $company->max_discount_percentage }}% aplicado — desconto limitado ao máximo permitido">
+                      <i class="fas fa-lock" style="color:#b71c1c;font-size:10px;cursor:default;pointer-events:none;"></i>
+                    </span>
+                  @endif
                 @else
                   <span class="text-muted">—</span>
                 @endif
@@ -230,10 +239,36 @@
   </x-adminlte-card>
 @stop
 
+@section('css')
+  <style>
+    .css-tooltip::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.75);
+      color: #fff;
+      font-size: 11px;
+      line-height: 1.4;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s ease;
+      z-index: 9999;
+    }
+    .css-tooltip:hover::after {
+      opacity: 1;
+    }
+  </style>
+@stop
+
 @section('js')
   <script>
     $(document).ready(function () {
-      $('#discount-value').inputmask('currency', {
+$('#discount-value').inputmask('currency', {
         prefix: '',
         groupSeparator: '.',
         radixPoint: ',',

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Client;
+use App\Models\Company;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
@@ -141,7 +142,9 @@ class AppointmentController extends Controller
       ->orderBy('name')
       ->get();
 
-    return view('appointments.show', compact('appointment', 'services'));
+    $company = Company::first();
+
+    return view('appointments.show', compact('appointment', 'services', 'company'));
   }
 
   /**

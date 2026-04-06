@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
       PromotionSeeder::class,
       AppointmentSeeder::class,
       AppointmentServiceSeeder::class,
+      CompanySeeder::class,
     ]);
   }
 }

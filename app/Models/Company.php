@@ -26,5 +26,6 @@ class Company extends Model
     'city',
     'state',
     'rebooking_reminder_days',
+    'max_discount_percentage',
   ];
 }

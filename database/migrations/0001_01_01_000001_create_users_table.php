@@ -33,6 +33,7 @@ return new class extends Migration {
       $table->string('state');
       $table->decimal('salary', 10)->nullable();
       $table->date('admission_date')->nullable();
+      $table->boolean('can_apply_manual_discount')->default(false);
       $table->rememberToken();
       $table->timestamps();
       $table->foreignUuid('created_by')->nullable()

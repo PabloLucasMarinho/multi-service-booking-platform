@@ -7,6 +7,7 @@ use App\Enums\DiscountType;
 use App\Http\Requests\StoreAppointmentServiceRequest;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
+use App\Models\Company;
 use App\Models\Promotion;
 use App\Models\Service;
 use Illuminate\Support\Facades\DB;
@@ -46,12 +47,15 @@ class BookingService
     DB::transaction(function () use ($request, $appointment) {
       $service = Service::findOrFail($request->service_uuid);
 
+      $user = auth()->user();
+      $canDiscount = $user->can_apply_manual_discount || $user->role->name === 'owner';
+
       $appointmentService = new AppointmentService([
         'appointment_uuid' => $appointment->uuid,
         'service_uuid' => $service->uuid,
         'original_price' => $service->price,
-        'manual_discount_type' => $request->manual_discount_type ?: null,
-        'manual_discount_value' => $request->manual_discount_value ?: null,
+        'manual_discount_type' => $canDiscount ? ($request->manual_discount_type ?: null) : null,
+        'manual_discount_value' => $canDiscount ? ($request->manual_discount_value ?: null) : null,
       ]);
 
       $promotion = Promotion::active()
@@ -78,7 +82,8 @@ class BookingService
         $appointmentService->promotion_amount_snapshot = $promotionAmount;
       }
 
-      $appointmentService->applyDiscount();
+      $maxDiscount = Company::first()?->max_discount_percentage;
+      $appointmentService->applyDiscount($maxDiscount);
       $appointmentService->save();
     });
   }

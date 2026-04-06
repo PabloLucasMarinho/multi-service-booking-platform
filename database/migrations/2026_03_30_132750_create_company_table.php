@@ -25,6 +25,7 @@ return new class extends Migration {
       $table->string('city')->nullable();
       $table->string('state')->nullable();
       $table->unsignedSmallInteger('rebooking_reminder_days')->nullable();
+      $table->unsignedTinyInteger('max_discount_percentage')->nullable();
       $table->timestamps();
     });
   }

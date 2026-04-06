@@ -52,7 +52,7 @@ class AppointmentService extends Model
     'final_price' => 'decimal:2',
   ];
 
-  public function applyDiscount(): void
+  public function applyDiscount(?int $maxDiscountPercentage = null): void
   {
     $original = $this->original_price ?? 0;
 
@@ -62,20 +62,44 @@ class AppointmentService extends Model
 
     $manualAmount = match ($this->manual_discount_type) {
       DiscountType::Percentage => $afterPromotion * (($this->manual_discount_value ?? 0) / 100),
-
-      DiscountType::Fixed => $this->manual_discount_value ?? 0,
-
-      default => 0
+      DiscountType::Fixed      => $this->manual_discount_value ?? 0,
+      default                  => 0,
     };
 
     $manualAmount = min($manualAmount, $afterPromotion);
+
+    // Aplica o teto de desconto: promoção + manual não podem ultrapassar X% do preço base
+    if ($maxDiscountPercentage !== null && $original > 0) {
+      $maxTotalDiscount = round($original * ($maxDiscountPercentage / 100), 2);
+      $allowedManual    = max(0, $maxTotalDiscount - $promotionDiscount);
+      $manualAmount     = min($manualAmount, $allowedManual);
+    }
+
     $manualAmount = round($manualAmount, 2);
 
     $this->manual_discount_amount = $manualAmount;
+    $this->final_price = max(0, round($afterPromotion - $manualAmount, 2));
+  }
 
-    $finalPrice = round($afterPromotion - $manualAmount, 2);
+  public function isDiscountCapped(?int $maxDiscountPercentage): bool
+  {
+    if ($maxDiscountPercentage === null || !$this->manual_discount_type || !$this->manual_discount_amount) {
+      return false;
+    }
 
-    $this->final_price = max(0, $finalPrice);
+    $original         = $this->original_price ?? 0;
+    $promotionDiscount = $this->promotion_amount_snapshot ?? 0;
+    $afterPromotion   = round(max(0, $original - $promotionDiscount), 2);
+
+    $expectedManual = match ($this->manual_discount_type) {
+      DiscountType::Percentage => round($afterPromotion * (($this->manual_discount_value ?? 0) / 100), 2),
+      DiscountType::Fixed      => (float)($this->manual_discount_value ?? 0),
+      default                  => 0,
+    };
+
+    $expectedManual = min($expectedManual, $afterPromotion);
+
+    return round((float)$this->manual_discount_amount, 2) < round($expectedManual, 2);
   }
 
   public function getRouteKeyName(): string

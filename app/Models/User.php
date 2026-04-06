@@ -38,6 +38,7 @@ class User extends Authenticatable
     'state',
     'salary',
     'admission_date',
+    'can_apply_manual_discount',
   ];
 
   protected $casts = [
@@ -45,6 +46,7 @@ class User extends Authenticatable
     'email_verified_at' => 'datetime',
     'date_of_birth' => 'datetime',
     'admission_date' => 'datetime',
+    'can_apply_manual_discount' => 'boolean',
   ];
 
   protected $hidden = [
