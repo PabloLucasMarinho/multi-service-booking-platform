@@ -25,5 +25,6 @@ class Company extends Model
     'neighborhood',
     'city',
     'state',
+    'rebooking_reminder_days',
   ];
 }

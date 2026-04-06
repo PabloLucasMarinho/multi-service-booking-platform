@@ -156,6 +156,36 @@
         />
       </div>
 
+      <div class="row border border-dark-subtle rounded mb-2 pt-2">
+        <div class="col-12 mb-2">
+          <small class="text-muted">
+            <i class="fas fa-bell mr-1"></i>
+            <strong>Lembrete de Reagendamento</strong> — quando preenchido, o cliente receberá um e-mail e SMS
+            convidando-o a agendar novamente após o número de dias informado desde o
+            último agendamento.
+          </small>
+        </div>
+
+        <x-adminlte-input
+          id="rebooking_reminder_days"
+          name="rebooking_reminder_days"
+          label="Enviar lembrete após (dias)"
+          placeholder="p.ex. 30"
+          value="{{ old('rebooking_reminder_days', $company->rebooking_reminder_days) }}"
+          type="number"
+          min="1"
+          max="365"
+          autocomplete="off"
+          fgroup-class="col-md-3"
+        >
+          <x-slot name="prependSlot">
+            <div class="input-group-text">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+          </x-slot>
+        </x-adminlte-input>
+      </div>
+
       <div class="row justify-content-end">
         <x-adminlte-button
           type="submit"

@@ -35,6 +35,7 @@ class StoreCompanyRequest extends BaseFormRequest
       'neighborhood' => 'nullable|string|max:50',
       'city' => 'nullable|string|max:50',
       'state' => 'nullable|string|max:2',
+      'rebooking_reminder_days' => 'nullable|integer|min:1|max:365',
     ];
   }
 
@@ -67,6 +68,7 @@ class StoreCompanyRequest extends BaseFormRequest
       'neighborhood' => 'bairro',
       'city' => 'cidade',
       'state' => 'estado',
+      'rebooking_reminder_days' => 'dias para lembrete de reagendamento',
     ];
   }
 }

@@ -24,6 +24,7 @@ return new class extends Migration {
       $table->string('neighborhood')->nullable();
       $table->string('city')->nullable();
       $table->string('state')->nullable();
+      $table->unsignedSmallInteger('rebooking_reminder_days')->nullable();
       $table->timestamps();
     });
   }
