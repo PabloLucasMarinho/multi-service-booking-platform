@@ -142,6 +142,15 @@ class AppServiceProvider extends ServiceProvider
       ]);
 
       $event->menu->add([
+        'text' => 'settings',
+        'route' => 'settings.index',
+        'icon' => 'fas fa-fw fa-sliders-h',
+        'active' => ['settings', 'settings*'],
+        'can' => 'view',
+        'model' => Company::class,
+      ]);
+
+      $event->menu->add([
         'text' => 'password',
         'route' => 'password.request',
         'icon' => 'fas fa-fw fa-cog',

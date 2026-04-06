@@ -7,6 +7,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
@@ -66,6 +67,10 @@ Route::middleware('auth')->group(function () {
   // COMPANY
   Route::get('company', [CompanyController::class, 'show'])->name('company.index');
   Route::post('company', [CompanyController::class, 'store'])->name('company.save');
+
+  // SETTINGS
+  Route::get('settings', [SettingsController::class, 'show'])->name('settings.index');
+  Route::post('settings', [SettingsController::class, 'store'])->name('settings.save');
 
   //REPORTS
   Route::get('reports', [ReportController::class, 'index'])
