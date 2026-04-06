@@ -44,9 +44,17 @@ relatórios gerenciais.
 
 ![Perfil](screenshots/profile.png)
 
+### Estabelecimento
+
+![Estabelecimento](screenshots/company.png)
+
+### Configurações
+
+![Configurações](screenshots/settings.png)
+
 ### Diagrama Entidade Relacionamento
 
-![Diagrama Entidade Relacionamento](screenshots/booking-platform.jpg)
+![Diagrama Entidade Relacionamento](screenshots/booking-platform.drawio.png)
 
 ---
 
@@ -64,6 +72,7 @@ relatórios gerenciais.
 - **Relatórios** — relatórios financeiros, operacionais, de clientes e de promoções com filtro por período
 - **Notificações** — envio automático de e-mail e SMS aos clientes ao cadastrar uma nova promoção, com opção de opt-out
 - **Estabelecimento** — cadastro dos dados do estabelecimento utilizados nos recibos e notificações
+- **Configurações** — Personalização de comportamentos específicos do sistema
 
 ---
 
@@ -166,6 +175,7 @@ Acesse `http://localhost:8000` e faça login com as credenciais do seed:
 | Promoções       |  ✓   |   —   |      —      |
 | Relatórios      |  ✓   |   —   |      —      |
 | Estabelecimento |  ✓   |   —   |      —      |
+| Configurações   |  ✓   |   —   |      —      |
 
 ---
 
@@ -203,7 +213,7 @@ Este projeto foi desenvolvido sob encomenda e é de uso proprietário.
 
 ## Contato
 
-Desenvolvido por **Pablo Marinho**
+Desenvolvido por [Pablo Marinho](https://pablolucasmarinho.github.io/portfolio/)
 
 - 📧 contatopablomarinho@gmail.com
 - 📱 (21) 99157-1242
