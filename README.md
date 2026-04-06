@@ -72,7 +72,7 @@ relatórios gerenciais.
 - **Relatórios** — relatórios financeiros, operacionais, de clientes e de promoções com filtro por período
 - **Notificações** — envio automático de e-mail e SMS aos clientes ao cadastrar uma nova promoção, com opção de opt-out
 - **Estabelecimento** — cadastro dos dados do estabelecimento utilizados nos recibos e notificações
-- **Configurações** — Personalização de comportamentos específicos do sistema
+- **Configurações** — personalização de comportamentos específicos do sistema
 
 ---
 
