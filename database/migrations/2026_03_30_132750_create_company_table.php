@@ -12,7 +12,7 @@ return new class extends Migration {
   {
     Schema::create('company', function (Blueprint $table) {
       $table->id();
-      $table->string('name');
+      $table->string('name')->nullable();
       $table->string('fantasy_name')->nullable();
       $table->string('document')->nullable(); // CNPJ ou CPF
       $table->string('email')->nullable();

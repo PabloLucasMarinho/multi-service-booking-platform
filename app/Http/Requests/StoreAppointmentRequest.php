@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\NoConflictingAppointment;
 use Illuminate\Support\Carbon;
 
 class StoreAppointmentRequest extends BaseFormRequest
@@ -47,7 +48,7 @@ class StoreAppointmentRequest extends BaseFormRequest
   public function rules(): array
   {
     return [
-      'scheduled_at' => 'required|date|date_format:Y-m-d H:i:s|after_or_equal:today',
+      'scheduled_at' => ['required', 'date', 'date_format:Y-m-d H:i:s', 'after_or_equal:today', new NoConflictingAppointment(userUuid: $this->input('user'))],
       'notes' => 'nullable|string',
       'client' => 'required|uuid|exists:clients,uuid',
       'user' => 'required|uuid|exists:users,uuid',

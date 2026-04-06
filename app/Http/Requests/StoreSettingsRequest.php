@@ -15,7 +15,7 @@ class StoreSettingsRequest extends BaseFormRequest
       'rebooking_reminder_days'  => 'nullable|integer|min:1|max:365',
       'max_discount_percentage'  => 'nullable|integer|min:1|max:100',
       'discount_users'           => 'nullable|array',
-      'discount_users.*'         => 'uuid|exists:users,uuid',
+      'discount_users.*'         => 'exists:users,uuid',
     ];
   }
 
@@ -28,7 +28,6 @@ class StoreSettingsRequest extends BaseFormRequest
       'max_discount_percentage.integer'  => 'O :attribute deve ser um número inteiro.',
       'max_discount_percentage.min'      => 'O :attribute deve ser no mínimo 1%.',
       'max_discount_percentage.max'      => 'O :attribute não pode ultrapassar 100%.',
-      'discount_users.*.uuid'           => 'Um dos funcionários selecionados é inválido.',
       'discount_users.*.exists'         => 'Um dos funcionários selecionados não existe.',
     ];
   }

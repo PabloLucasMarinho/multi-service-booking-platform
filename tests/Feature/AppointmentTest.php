@@ -247,6 +247,72 @@ describe('store', function () {
       ]))
       ->assertSessionHasErrors('client');
   });
+
+  it('mesmo funcionário não pode ter dois agendamentos no mesmo horário', function () {
+    $admin = makeAppointmentUser('admin');
+    $client1 = Client::factory()->create(['user_uuid' => $admin->uuid]);
+    $client2 = Client::factory()->create(['user_uuid' => $admin->uuid]);
+    $scheduledAt = now()->addDay()->setHour(10)->setMinute(0)->setSecond(0)->setMicrosecond(0);
+
+    Appointment::factory()->create([
+      'user_uuid'    => $admin->uuid,
+      'client_uuid'  => $client1->uuid,
+      'scheduled_at' => $scheduledAt,
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $this->actingAs($admin)
+      ->post(route('appointments.store'), validAppointmentData($admin, $client2, [
+        'scheduled_at'   => $scheduledAt->format('d/m/Y'),
+        'scheduled_hour' => $scheduledAt->format('H:i'),
+      ]))
+      ->assertSessionHasErrors('scheduled_at');
+  });
+
+  it('funcionários diferentes podem ter agendamentos no mesmo horário', function () {
+    $admin    = makeAppointmentUser('admin');
+    $employee = makeAppointmentUser('employee');
+    $client1  = Client::factory()->create(['user_uuid' => $admin->uuid]);
+    $client2  = Client::factory()->create(['user_uuid' => $employee->uuid]);
+    $scheduledAt = now()->addDay()->setHour(10)->setMinute(0)->setSecond(0)->setMicrosecond(0);
+
+    Appointment::factory()->create([
+      'user_uuid'    => $admin->uuid,
+      'client_uuid'  => $client1->uuid,
+      'scheduled_at' => $scheduledAt,
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $this->actingAs($employee)
+      ->post(route('appointments.store'), validAppointmentData($employee, $client2, [
+        'scheduled_at'   => $scheduledAt->format('d/m/Y'),
+        'scheduled_hour' => $scheduledAt->format('H:i'),
+      ]))
+      ->assertSessionHasNoErrors()
+      ->assertRedirect();
+  });
+
+  it('horário ocupado por agendamento cancelado não bloqueia', function () {
+    $admin   = makeAppointmentUser('admin');
+    $client1 = Client::factory()->create(['user_uuid' => $admin->uuid]);
+    $client2 = Client::factory()->create(['user_uuid' => $admin->uuid]);
+    $scheduledAt = now()->addDay()->setHour(10)->setMinute(0)->setSecond(0)->setMicrosecond(0);
+
+    Appointment::factory()->create([
+      'user_uuid'    => $admin->uuid,
+      'client_uuid'  => $client1->uuid,
+      'scheduled_at' => $scheduledAt,
+      'status'       => AppointmentStatus::Cancelled,
+    ]);
+
+    $this->actingAs($admin)
+      ->post(route('appointments.store'), validAppointmentData($admin, $client2, [
+        'scheduled_at'   => $scheduledAt->format('d/m/Y'),
+        'scheduled_hour' => $scheduledAt->format('H:i'),
+      ]))
+      ->assertSessionHasNoErrors()
+      ->assertRedirect();
+  });
 });
 
 // ============================================================
@@ -328,6 +394,45 @@ describe('update', function () {
     $this->actingAs($employee)
       ->put(route('appointments.update', $appointment), validAppointmentData($employee, $client))
       ->assertForbidden();
+  });
+
+  it('atualizar para horário já ocupado pelo mesmo funcionário é rejeitado', function () {
+    $admin      = makeAppointmentUser('admin');
+    $client     = Client::factory()->create(['user_uuid' => $admin->uuid]);
+    $occupiedAt = now()->addDays(2)->setHour(11)->setMinute(0)->setSecond(0)->setMicrosecond(0);
+
+    Appointment::factory()->create([
+      'user_uuid'    => $admin->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => $occupiedAt,
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $appointment = makeAppointment($admin, [
+      'scheduled_at' => now()->addDays(3)->setHour(14)->setMinute(0)->setSecond(0)->setMicrosecond(0),
+    ]);
+
+    $this->actingAs($admin)
+      ->put(route('appointments.update', $appointment), validAppointmentData($admin, $client, [
+        'scheduled_at'   => $occupiedAt->format('d/m/Y'),
+        'scheduled_hour' => $occupiedAt->format('H:i'),
+      ]))
+      ->assertSessionHasErrors('scheduled_at');
+  });
+
+  it('salvar agendamento sem mudar horário não é bloqueado pelo conflito', function () {
+    $admin       = makeAppointmentUser('admin');
+    $scheduledAt = now()->addDays(2)->setHour(10)->setMinute(0)->setSecond(0)->setMicrosecond(0);
+    $appointment = makeAppointment($admin, ['scheduled_at' => $scheduledAt]);
+    $client      = Client::factory()->create(['user_uuid' => $admin->uuid]);
+
+    $this->actingAs($admin)
+      ->put(route('appointments.update', $appointment), validAppointmentData($admin, $client, [
+        'scheduled_at'   => $scheduledAt->format('d/m/Y'),
+        'scheduled_hour' => $scheduledAt->format('H:i'),
+      ]))
+      ->assertSessionHasNoErrors()
+      ->assertRedirect();
   });
 });
 
