@@ -232,6 +232,8 @@
         />
       </div>
     </form>
+
+    <x-audit-footer :model="$user" />
   </x-adminlte-card>
 @stop
 

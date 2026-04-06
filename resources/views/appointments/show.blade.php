@@ -81,10 +81,9 @@
                 </select>
               </div>
               @php $canDiscount = auth()->user()->can_apply_manual_discount || auth()->user()->role->name === 'owner'; @endphp
-              @if($canDiscount)
               <div class="col-md-3">
                 <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Desconto</label>
-                <select name="manual_discount_type" class="form-control form-control-sm">
+                <select name="manual_discount_type" class="form-control form-control-sm" {{ $canDiscount ? '' : 'disabled' }}>
                   <option value="">Sem desconto</option>
                   <option value="percentage">Porcentagem (%)</option>
                   <option value="fixed">Valor fixo (R$)</option>
@@ -93,10 +92,9 @@
               <div class="col-md-2">
                 <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Valor</label>
                 <input type="text" name="manual_discount_value" id="discount-value" class="form-control form-control-sm"
-                       placeholder="0,00"/>
+                       placeholder="0,00" {{ $canDiscount ? '' : 'disabled' }}/>
               </div>
-              @endif
-              <div class="{{ $canDiscount ? 'col-md-2' : 'col-md-7' }}">
+              <div class="col-md-2">
                 <button type="submit" class="btn btn-success btn-sm btn-block">
                   <i class="fas fa-plus mr-1"></i> Adicionar
                 </button>
@@ -235,6 +233,10 @@
           @endif
         </div>
       @endif
+    </div>
+
+    <div class="mx-4">
+      <x-audit-footer :model="$appointment" />
     </div>
   </x-adminlte-card>
 @stop

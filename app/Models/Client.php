@@ -62,6 +62,16 @@ class Client extends Model
     return $this->belongsTo(User::class, 'user_uuid', 'uuid');
   }
 
+  public function createdBy(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'created_by', 'uuid')->withTrashed();
+  }
+
+  public function updatedBy(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'updated_by', 'uuid')->withTrashed();
+  }
+
   public function appointments(): HasMany
   {
     return $this->hasMany(Appointment::class, 'client_uuid', 'uuid');

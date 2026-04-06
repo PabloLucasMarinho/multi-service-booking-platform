@@ -99,7 +99,7 @@ class UserController extends Controller
       Gate::authorize('view', $user);
     }
 
-    $user->load('role');
+    $user->load(['role', 'createdBy.role', 'updatedBy.role']);
 
     return view('users.show', compact('user'));
   }
@@ -116,7 +116,7 @@ class UserController extends Controller
       ->pluck('name_formatted', 'name')
       ->toArray();
 
-    $user->load('role');
+    $user->load(['role', 'createdBy.role', 'updatedBy.role']);
 
     return view('users.edit', compact('user', 'roles'));
   }

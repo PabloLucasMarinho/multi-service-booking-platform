@@ -83,6 +83,8 @@ class ClientController extends Controller
   {
     Gate::authorize('update', $client);
 
+    $client->load(['createdBy.role', 'updatedBy.role']);
+
     return view('clients.edit', compact('client'));
   }
 

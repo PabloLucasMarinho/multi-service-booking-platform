@@ -16,7 +16,7 @@
 
 @section('content')
   <x-adminlte-card title="Edição de Cliente" theme="primary" icon="fas fa-users">
-    <form action="{{route('clients.update', $client)}}" method="POST">
+    <form action="{{route('clients.update', $client)}}" method="POST" class="mb-3">
       @method('PUT')
       @csrf
 
@@ -106,6 +106,8 @@
         />
       </div>
     </form>
+
+    <x-audit-footer :model="$client"/>
   </x-adminlte-card>
 @stop
 

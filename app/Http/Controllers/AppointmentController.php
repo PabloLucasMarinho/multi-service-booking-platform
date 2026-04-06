@@ -133,7 +133,7 @@ class AppointmentController extends Controller
   {
     Gate::authorize('view', $appointment);
 
-    $appointment->load(['appointmentServices.service', 'appointmentServices.promotion', 'client', 'user']);
+    $appointment->load(['appointmentServices.service', 'appointmentServices.promotion', 'client', 'user', 'createdBy.role', 'updatedBy.role']);
 
     $addedServiceUuids = $appointment->appointmentServices->pluck('service_uuid');
 

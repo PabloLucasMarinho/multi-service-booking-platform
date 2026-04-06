@@ -56,6 +56,16 @@ class Appointment extends Model
       ->withoutGlobalScopes();
   }
 
+  public function createdBy(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'created_by', 'uuid')->withTrashed();
+  }
+
+  public function updatedBy(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'updated_by', 'uuid')->withTrashed();
+  }
+
   protected $casts = [
     'scheduled_at' => 'datetime',
     'status' => AppointmentStatus::class

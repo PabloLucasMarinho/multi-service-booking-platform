@@ -167,6 +167,8 @@
 @section('js')
   <script>
     $(document).ready(function () {
+      const STATUS_KEY = 'appointments_status_filter';
+
       $('#filter-date-from').inputmask('99/99/9999');
       $('#filter-date-to').inputmask('99/99/9999');
 
@@ -175,24 +177,34 @@
         locale: 'pt-br',
       });
 
-      // Atualiza o contador de status selecionados
       function updateStatusCount() {
         const checked = $('.status-checkbox:checked').length;
         const total = $('.status-checkbox').length;
         $('#status-count').text(checked === total ? 'Todos' : checked + ' selecionados');
       }
 
+      function applyStatusesToCheckboxes(statuses) {
+        $('.status-checkbox').prop('checked', false);
+        statuses.forEach(s => $(`.status-checkbox[value="${s}"]`).prop('checked', true));
+        updateStatusCount();
+      }
+
       $(document).on('change', '.status-checkbox', updateStatusCount);
+
+      $('.dropdown-menu').on('click', function (e) {
+        e.stopPropagation();
+      });
+
+      $('#select-all-status').on('click', function (e) {
+        e.stopPropagation();
+        $('.status-checkbox').prop('checked', true);
+        updateStatusCount();
+      });
 
       $('#clear-status').on('click', function (e) {
         e.stopPropagation();
         $('.status-checkbox').prop('checked', false);
         updateStatusCount();
-      });
-
-      // Impede o dropdown de fechar ao clicar nos checkboxes
-      $('.dropdown-menu').on('click', function (e) {
-        e.stopPropagation();
       });
 
       $('#btn-apply-filters').on('click', function () {
@@ -201,6 +213,8 @@
         const statuses = $('.status-checkbox:checked').map(function () {
           return $(this).val();
         }).get();
+
+        localStorage.setItem(STATUS_KEY, JSON.stringify(statuses));
 
         const params = new URLSearchParams();
         if (from) params.set('from', from);
@@ -218,23 +232,37 @@
         $('#btn-apply-filters').trigger('click');
       });
 
-      $('#select-all-status').on('click', function (e) {
-        e.stopPropagation();
-        $('.status-checkbox').prop('checked', true);
-        updateStatusCount();
-      });
+      // Restaura estado dos filtros
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlStatuses = urlParams.getAll('statuses[]');
 
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('from')) $('#filter-date-from').val(params.get('from'));
-      if (params.get('to')) $('#filter-date-to').val(params.get('to'));
-
-      const selectedStatuses = params.getAll('statuses[]');
-      if (selectedStatuses.length) {
-        $('.status-checkbox').prop('checked', false);
-        selectedStatuses.forEach(s => {
-          $(`.status-checkbox[value="${s}"]`).prop('checked', true);
-        });
-        updateStatusCount();
+      if (urlStatuses.length) {
+        // URL tem statuses — aplica e salva
+        applyStatusesToCheckboxes(urlStatuses);
+        localStorage.setItem(STATUS_KEY, JSON.stringify(urlStatuses));
+        if (urlParams.get('from')) $('#filter-date-from').val(urlParams.get('from'));
+        if (urlParams.get('to')) $('#filter-date-to').val(urlParams.get('to'));
+      } else {
+        // Sem statuses na URL — tenta restaurar do localStorage
+        const saved = localStorage.getItem(STATUS_KEY);
+        if (saved !== null) {
+          const savedStatuses = JSON.parse(saved);
+          if (savedStatuses.length > 0) {
+            // Redireciona automaticamente com o filtro salvo
+            const newParams = new URLSearchParams();
+            savedStatuses.forEach(s => newParams.append('statuses[]', s));
+            window.location.replace('{{ route('appointments.index') }}?' + newParams.toString());
+          } else {
+            // Seleção salva era vazia — limpa o estado
+            localStorage.removeItem(STATUS_KEY);
+            updateStatusCount();
+          }
+        } else {
+          // Nenhuma preferência salva — exibe todos marcados (padrão do HTML)
+          if (urlParams.get('from')) $('#filter-date-from').val(urlParams.get('from'));
+          if (urlParams.get('to')) $('#filter-date-to').val(urlParams.get('to'));
+          updateStatusCount();
+        }
       }
     });
   </script>

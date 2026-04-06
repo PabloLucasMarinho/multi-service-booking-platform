@@ -79,7 +79,7 @@
     </div>
 
     {{-- Dados de Contrato --}}
-    <div class="card border mb-4 mx-4">
+    <div class="card border mb-3 mx-4">
       <div class="card-header py-2 px-3 d-flex align-items-center">
         <i class="fas fa-briefcase fa-sm mr-2 text-muted"></i>
         <small class="text-uppercase text-muted font-weight-bold" style="letter-spacing:.05em;">Dados de
@@ -98,6 +98,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="mx-4">
+      <x-audit-footer :model="$user" />
     </div>
   </x-adminlte-card>
 @stop
