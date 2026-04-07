@@ -21,6 +21,9 @@ return new class extends Migration {
       $table->dateTime('scheduled_at');
       $table->text('notes')->nullable();
       $table->string('status');
+      $table->decimal('tip', 10, 2)->nullable();
+      $table->decimal('closing_discount', 10, 2);
+      $table->foreignUuid('discount_authorized_by')->nullable()->constrained('users', 'uuid');
       $table->timestamps();
       $table->foreignUuid('created_by')->nullable()
         ->constrained('users', 'uuid')->nullOnDelete();
