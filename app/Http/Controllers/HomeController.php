@@ -43,6 +43,23 @@ class HomeController extends Controller
       ->orderBy('scheduled_at')
       ->get();
 
+    $nextAppointment = $todayAppointments
+      ->where('status', AppointmentStatus::Scheduled)
+      ->where('scheduled_at', '>=', now())
+      ->first();
+
+    if ($nextAppointment) {
+      $todayAppointments = collect([$nextAppointment])
+        ->concat($todayAppointments->reject(fn($a) => $a->uuid === $nextAppointment->uuid));
+    }
+
+    $tomorrowAppointments = Appointment::query()
+      ->whereDate('scheduled_at', today()->addDay())
+      ->when(!$isOwner, fn($q) => $q->where('user_uuid', $user->uuid))
+      ->with(['client', 'user'])
+      ->orderBy('scheduled_at')
+      ->get();
+
     $revenueQuery = AppointmentService::query()
       ->whereHas('appointment', fn($q) => $q
         ->whereMonth('scheduled_at', $month)
@@ -68,6 +85,8 @@ class HomeController extends Controller
     return view('home', compact(
       'statusCounts',
       'todayAppointments',
+      'nextAppointment',
+      'tomorrowAppointments',
       'monthlyRevenue',
       'myMonthlyRevenue',
       'totalClients',
