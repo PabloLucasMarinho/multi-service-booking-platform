@@ -16,7 +16,7 @@ class OwnerSeeder extends Seeder
     $ownerRoleUuid = Role::where('name', 'owner')->value('uuid');
 
     User::create([
-      'name' => 'Dono',
+      'name' => 'Proprietário',
       'email' => 'owner@email.com',
       'email_verified_at' => now(),
       'password' => bcrypt('Aa123456'),

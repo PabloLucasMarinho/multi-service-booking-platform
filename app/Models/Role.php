@@ -27,7 +27,7 @@ class Role extends Model
   {
     return Attribute::make(
       get: fn() => match ($this->name) {
-        RoleNames::Owner->value => 'Dono',
+        RoleNames::Owner->value => 'Proprietário',
         RoleNames::Admin->value => 'Administrador',
         RoleNames::Employee->value => 'Funcionário',
       }
