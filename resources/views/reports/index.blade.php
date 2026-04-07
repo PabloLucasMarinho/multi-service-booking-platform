@@ -86,7 +86,7 @@
       {{-- Financeiro --}}
       <div class="tab-pane fade show active" id="financeiro">
         <div class="row mb-3">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="p-3 rounded" style="background:#EAF3DE;border:0.5px solid #C0DD97;">
               <div class="text-uppercase font-weight-bold mb-1"
                    style="font-size:11px;letter-spacing:.05em;color:#3B6D11;">Faturamento total
@@ -95,7 +95,7 @@
                 R$ {{ number_format($financial['totalRevenue'], 2, ',', '.') }}</div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="p-3 rounded" style="background:#E6F1FB;border:0.5px solid #B5D4F4;">
               <div class="text-uppercase font-weight-bold mb-1"
                    style="font-size:11px;letter-spacing:.05em;color:#185FA5;">Ticket médio
@@ -104,13 +104,22 @@
                 R$ {{ number_format($financial['avgTicket'], 2, ',', '.') }}</div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="p-3 rounded"
-                 style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);">
+                 style="background:#f8f9fa;border:0.5px solid #dee2e6;">
               <div class="text-uppercase font-weight-bold mb-1 text-muted" style="font-size:11px;letter-spacing:.05em;">
                 Atendimentos concluídos
               </div>
               <div class="font-weight-bold" style="font-size:24px;">{{ $financial['totalAppointments'] }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 rounded" style="background:#FEF9EC;border:0.5px solid #F5D87A;">
+              <div class="text-uppercase font-weight-bold mb-1"
+                   style="font-size:11px;letter-spacing:.05em;color:#7A5700;">Gorjetas no período
+              </div>
+              <div class="font-weight-bold" style="font-size:24px;color:#5A3F00;">
+                R$ {{ number_format($financial['totalTips'], 2, ',', '.') }}</div>
             </div>
           </div>
         </div>
@@ -154,7 +163,7 @@
         <div class="row mb-3">
           <div class="col-md-4">
             <div class="p-3 rounded"
-                 style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);">
+                 style="background:#f8f9fa;border:0.5px solid #dee2e6;">
               <div class="text-uppercase font-weight-bold mb-1 text-muted" style="font-size:11px;letter-spacing:.05em;">
                 Total agendamentos
               </div>
@@ -227,7 +236,7 @@
         <div class="row mb-3">
           <div class="col-md-4">
             <div class="p-3 rounded"
-                 style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);">
+                 style="background:#f8f9fa;border:0.5px solid #dee2e6;">
               <div class="text-uppercase font-weight-bold mb-1 text-muted" style="font-size:11px;letter-spacing:.05em;">
                 Total clientes
               </div>
@@ -252,6 +261,25 @@
             </div>
           </div>
         </div>
+
+        @if($clients['topTipClient'])
+          @php $ttc = $clients['topTipClient']; @endphp
+          <div class="card border mb-3" style="border-color:#F5D87A !important;">
+            <div class="card-body py-2 px-3 d-flex align-items-center" style="gap:16px;background:#FEF9EC;border-radius:inherit;">
+              <i class="fas fa-hand-holding-usd fa-2x" style="color:#7A5700;opacity:.7;flex-shrink:0;"></i>
+              <div>
+                <div class="text-uppercase font-weight-bold mb-1" style="font-size:11px;letter-spacing:.05em;color:#7A5700;">
+                  Cliente que mais dá gorjeta
+                </div>
+                <div class="font-weight-bold" style="font-size:16px;color:#5A3F00;">{{ $ttc->name }}</div>
+                <div style="font-size:12px;color:#7A5700;">
+                  R$ {{ number_format($ttc->total_tips, 2, ',', '.') }} em gorjetas
+                  &middot; {{ $ttc->tip_count }} {{ $ttc->tip_count === 1 ? 'vez' : 'vezes' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        @endif
 
         <div class="card border">
           <div class="card-header py-2 px-3">
@@ -301,7 +329,7 @@
           </div>
           <div class="col-md-4">
             <div class="p-3 rounded"
-                 style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);">
+                 style="background:#f8f9fa;border:0.5px solid #dee2e6;">
               <div class="text-uppercase font-weight-bold mb-1 text-muted" style="font-size:11px;letter-spacing:.05em;">
                 Atendimentos c/ promoção
               </div>

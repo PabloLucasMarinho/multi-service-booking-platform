@@ -24,7 +24,10 @@ class Appointment extends Model
     'client_uuid',
     'scheduled_at',
     'notes',
-    'status'
+    'status',
+    'tip',
+    'closing_discount',
+    'discount_authorized_by',
   ];
 
   protected static function booted(): void
@@ -56,6 +59,11 @@ class Appointment extends Model
       ->withoutGlobalScopes();
   }
 
+  public function payments(): HasMany
+  {
+    return $this->hasMany(AppointmentPayment::class, 'appointment_uuid', 'uuid');
+  }
+
   public function createdBy(): BelongsTo
   {
     return $this->belongsTo(User::class, 'created_by', 'uuid')->withTrashed();
@@ -79,6 +87,16 @@ class Appointment extends Model
   public function getFormattedTotalAttribute(): string
   {
     return number_format($this->total, 2, ',', '.');
+  }
+
+  public function getTotalPaidAttribute(): float
+  {
+    return round($this->payments->sum(fn($p) => (float)$p->amount), 2);
+  }
+
+  public function getBalanceAttribute(): float
+  {
+    return round($this->total_paid - $this->total, 2);
   }
 
   public function getStatusColorAttribute(): string

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AppointmentPaymentController;
 use App\Http\Controllers\AppointmentServiceController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
@@ -57,6 +58,12 @@ Route::middleware('auth')->group(function () {
   Route::patch('appointments/{appointment}/complete',
     [AppointmentController::class, 'complete']
   )->name('appointments.complete');
+  Route::post('appointments/{appointment}/payments',
+    [AppointmentPaymentController::class, 'store']
+  )->name('appointment-payments.store');
+  Route::delete('appointment-payments/{appointmentPayment}',
+    [AppointmentPaymentController::class, 'destroy']
+  )->name('appointment-payments.destroy');
   Route::get('appointments/{appointment}/receipt',
     [AppointmentController::class, 'receipt']
   )->name('appointments.receipt');

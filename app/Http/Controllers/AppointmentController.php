@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\RoleNames;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
@@ -10,6 +11,7 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Service;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Services\BookingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -133,7 +135,7 @@ class AppointmentController extends Controller
   {
     Gate::authorize('view', $appointment);
 
-    $appointment->load(['appointmentServices.service', 'appointmentServices.promotion', 'client', 'user', 'createdBy.role', 'updatedBy.role']);
+    $appointment->load(['appointmentServices.service', 'appointmentServices.promotion', 'client', 'user', 'createdBy.role', 'updatedBy.role', 'payments']);
 
     $addedServiceUuids = $appointment->appointmentServices->pluck('service_uuid');
 
@@ -203,11 +205,46 @@ class AppointmentController extends Controller
       ->with('success', 'Agendamento cancelado.');
   }
 
-  public function complete(Appointment $appointment)
+  public function complete(Request $request, Appointment $appointment)
   {
     Gate::authorize('update', $appointment);
 
-    $appointment->update(['status' => AppointmentStatus::Completed]);
+    $appointment->load('payments');
+
+    $totalPaid   = $appointment->total_paid;
+    $total       = $appointment->total;
+    $balance     = round($totalPaid - $total, 2);
+    $authUser    = auth()->user();
+    $isEmployee  = $authUser->role->name === RoleNames::Employee->value;
+
+    $updates = ['status' => AppointmentStatus::Completed];
+
+    if ($balance > 0) {
+      // Gorjeta
+      $updates['tip'] = $balance;
+
+    } elseif ($balance < 0) {
+      // Desconto no fechamento
+      if ($isEmployee) {
+        // Funcionário precisa de autorização de admin/owner
+        $admin = User::where('email', $request->admin_email)
+          ->whereHas('role', fn($q) => $q->whereIn('name', [
+            RoleNames::Admin->value,
+            RoleNames::Owner->value,
+          ]))
+          ->first();
+
+        if (!$admin || !Hash::check($request->admin_password, $admin->password)) {
+          return back()->with('error', 'Credenciais inválidas ou sem permissão para conceder desconto.');
+        }
+
+        $updates['discount_authorized_by'] = $admin->uuid;
+      }
+
+      $updates['closing_discount'] = abs($balance);
+    }
+
+    $appointment->update($updates);
 
     return redirect()
       ->route('appointments.show', $appointment)
@@ -234,6 +271,7 @@ class AppointmentController extends Controller
       'appointmentServices.promotion',
       'client',
       'user',
+      'payments',
     ]);
 
     $company = \App\Models\Company::first();

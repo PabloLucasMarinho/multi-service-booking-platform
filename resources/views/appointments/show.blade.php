@@ -212,16 +212,6 @@
                 <i class="fas fa-times mr-1"></i> Cancelar agendamento
               </button>
             </form>
-
-            @if(!$appointment->scheduled_at->isFuture())
-              <form action="{{ route('appointments.complete', $appointment) }}" method="POST">
-                @method('PATCH')
-                @csrf
-                <button type="submit" class="btn btn-success btn-sm">
-                  <i class="fas fa-check mr-1"></i> Concluir agendamento
-                </button>
-              </form>
-            @endif
           @elseif($appointment->canRestore())
             <form action="{{ route('appointments.restore', $appointment) }}" method="POST">
               @method('PATCH')
@@ -234,6 +224,212 @@
         </div>
       @endif
     </div>
+
+    {{-- Caixa --}}
+    @if($appointment->isEditable() && !$appointment->scheduled_at->isFuture() && $appointment->appointmentServices->isNotEmpty())
+      @php
+        $totalPaid   = $appointment->total_paid;
+        $total       = $appointment->total;
+        $balance     = round($totalPaid - $total, 2);
+        $isEmployee  = auth()->user()->role->name === \App\Enums\RoleNames::Employee->value;
+      @endphp
+
+      <div class="card border mb-4 mx-4">
+        <div class="card-header py-2 px-3 d-flex align-items-center">
+          <i class="fas fa-cash-register fa-sm mr-2 text-muted"></i>
+          <small class="text-uppercase text-muted font-weight-bold" style="letter-spacing:.05em;">Caixa</small>
+        </div>
+
+        {{-- Formulário de admissão de pagamento --}}
+        <form action="{{ route('appointment-payments.store', $appointment) }}" method="POST">
+          @csrf
+          <div class="p-3 border-bottom bg-light">
+            <div class="row align-items-end">
+              <div class="col-md-4">
+                <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Valor recebido</label>
+                <input type="text" name="amount" id="payment-amount" class="form-control form-control-sm"
+                       placeholder="0,00" required autocomplete="off" />
+              </div>
+              <div class="col-md-5">
+                <label class="text-uppercase text-muted font-weight-bold" style="font-size:11px;letter-spacing:.05em;">Forma de pagamento</label>
+                <select name="payment_method" class="form-control form-control-sm" required>
+                  <option value="">Selecione...</option>
+                  @foreach(\App\Enums\PaymentMethod::cases() as $method)
+                    <option value="{{ $method->value }}">{{ $method->label() }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm btn-block">
+                  <i class="fas fa-plus mr-1"></i> Admitir
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        {{-- Lista de pagamentos admitidos --}}
+        @if($appointment->payments->isNotEmpty())
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" style="table-layout:fixed;">
+              <thead class="bg-light">
+                <tr>
+                  <th style="width:50%;font-size:11px;" class="text-uppercase text-muted font-weight-bold pl-3">Forma</th>
+                  <th style="width:40%;font-size:11px;" class="text-uppercase text-muted font-weight-bold text-right">Valor</th>
+                  <th style="width:10%;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($appointment->payments as $payment)
+                  <tr>
+                    <td class="pl-3 align-middle">{{ $payment->payment_method->label() }}</td>
+                    <td class="text-right align-middle font-weight-bold">R$ {{ number_format($payment->amount, 2, ',', '.') }}</td>
+                    <td class="text-center align-middle">
+                      <form action="{{ route('appointment-payments.destroy', $payment) }}" method="POST">
+                        @method('DELETE')
+                        @csrf
+                        <button type="submit" class="btn btn-link text-danger p-0">
+                          <i class="fas fa-trash" style="font-size:13px;"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        @endif
+
+        {{-- Resumo financeiro --}}
+        <div class="px-3 py-2 border-top d-flex justify-content-end align-items-center" style="gap:24px;background:#f8f9fa;">
+          <span style="font-size:13px;">
+            <span class="text-muted">Total dos serviços:</span>
+            <strong>R$ {{ $appointment->formatted_total }}</strong>
+          </span>
+          <span style="font-size:13px;">
+            <span class="text-muted">Total pago:</span>
+            <strong>R$ {{ number_format($totalPaid, 2, ',', '.') }}</strong>
+          </span>
+          @if($balance > 0)
+            <span class="badge badge-success" style="font-size:12px;">
+              <i class="fas fa-arrow-up mr-1"></i> Gorjeta: R$ {{ number_format($balance, 2, ',', '.') }}
+            </span>
+          @elseif($balance < 0)
+            <span class="badge badge-warning" style="font-size:12px;">
+              <i class="fas fa-arrow-down mr-1"></i> Faltam: R$ {{ number_format(abs($balance), 2, ',', '.') }}
+            </span>
+          @else
+            <span class="badge badge-secondary" style="font-size:12px;">Valor exato</span>
+          @endif
+
+          <button type="button" class="btn btn-success btn-sm" id="btn-concluir">
+            <i class="fas fa-check mr-1"></i> Concluir agendamento
+          </button>
+        </div>
+      </div>
+
+      {{-- Formulário oculto de conclusão --}}
+      <form id="form-complete" action="{{ route('appointments.complete', $appointment) }}" method="POST" style="display:none;">
+        @method('PATCH')
+        @csrf
+        <input type="hidden" name="admin_email" id="complete-admin-email" value="">
+        <input type="hidden" name="admin_password" id="complete-admin-password" value="">
+      </form>
+
+      {{-- Modal: Gorjeta --}}
+      <div class="modal fade" id="modal-tip" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-hand-holding-usd mr-2 text-success"></i> Gorjeta detectada</h5>
+              <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+              <p>O cliente pagou <strong>R$ <span id="tip-amount"></span></strong> a mais do que o valor dos serviços.</p>
+              <p class="mb-0 text-muted" style="font-size:13px;">Esse valor será registrado como gorjeta para uso em relatórios. Deseja confirmar?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-success btn-sm" id="btn-confirm-tip">
+                <i class="fas fa-check mr-1"></i> Confirmar e concluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Modal: Desconto (admin/owner) --}}
+      <div class="modal fade" id="modal-discount" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-tag mr-2 text-warning"></i> Desconto no fechamento</h5>
+              <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+              <p>O valor pago é <strong>R$ <span id="discount-amount"></span></strong> menor do que o total dos serviços.</p>
+              <p class="mb-0 text-muted" style="font-size:13px;">Esse valor será registrado como desconto no fechamento. Deseja confirmar?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-warning btn-sm" id="btn-confirm-discount">
+                <i class="fas fa-check mr-1"></i> Confirmar e concluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Modal: Autorização de desconto (employee) --}}
+      <div class="modal fade" id="modal-auth" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-lock mr-2 text-danger"></i> Autorização necessária</h5>
+              <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+              <p>O valor pago é <strong>R$ <span id="auth-discount-amount"></span></strong> menor que o total. Para conceder esse desconto, um administrador precisa autorizar.</p>
+              <div class="form-group mb-2">
+                <label style="font-size:12px;" class="text-uppercase text-muted font-weight-bold">E-mail do administrador</label>
+                <input type="email" id="auth-email" class="form-control form-control-sm" placeholder="admin@exemplo.com" autocomplete="off" />
+              </div>
+              <div class="form-group mb-0">
+                <label style="font-size:12px;" class="text-uppercase text-muted font-weight-bold">Senha</label>
+                <input type="password" id="auth-password" class="form-control form-control-sm" placeholder="••••••••" autocomplete="new-password" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-danger btn-sm" id="btn-confirm-auth">
+                <i class="fas fa-unlock mr-1"></i> Autorizar e concluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Modal: Valor exato --}}
+      <div class="modal fade" id="modal-exact" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-check-circle mr-2 text-success"></i> Confirmar conclusão</h5>
+              <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+              <p class="mb-0">O valor pago corresponde exatamente ao total dos serviços. Deseja concluir o agendamento?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-success btn-sm" id="btn-confirm-exact">
+                <i class="fas fa-check mr-1"></i> Confirmar e concluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    @endif
 
     <div class="mx-4">
       <x-audit-footer :model="$appointment" />
@@ -270,7 +466,7 @@
 @section('js')
   <script>
     $(document).ready(function () {
-$('#discount-value').inputmask('currency', {
+      $('#discount-value').inputmask('currency', {
         prefix: '',
         groupSeparator: '.',
         radixPoint: ',',
@@ -279,6 +475,73 @@ $('#discount-value').inputmask('currency', {
         placeholder: '0',
         rightAlign: false,
       });
+
+      $('#payment-amount').inputmask('currency', {
+        prefix: '',
+        groupSeparator: '.',
+        radixPoint: ',',
+        digits: 2,
+        digitsOptional: false,
+        placeholder: '0',
+        rightAlign: false,
+      });
+
+      @if($appointment->isEditable() && !$appointment->scheduled_at->isFuture())
+        const balance    = {{ $balance ?? 0 }};
+        const isEmployee = {{ $isEmployee ? 'true' : 'false' }};
+
+        function submitComplete(adminEmail, adminPassword) {
+          $('#complete-admin-email').val(adminEmail || '');
+          $('#complete-admin-password').val(adminPassword || '');
+          $('#form-complete').submit();
+        }
+
+        $('#btn-concluir').on('click', function () {
+          if (balance > 0) {
+            $('#tip-amount').text('{{ number_format($balance ?? 0, 2, ',', '.') }}');
+            $('#modal-tip').modal('show');
+          } else if (balance < 0) {
+            const absBalance = '{{ number_format(abs($balance ?? 0), 2, ',', '.') }}';
+            if (isEmployee) {
+              $('#auth-discount-amount').text(absBalance);
+              $('#auth-email').val('');
+              $('#auth-password').val('');
+              $('#modal-auth').modal('show');
+            } else {
+              $('#discount-amount').text(absBalance);
+              $('#modal-discount').modal('show');
+            }
+          } else {
+            $('#modal-exact').modal('show');
+          }
+        });
+
+        $('#btn-confirm-tip').on('click', function () {
+          $('#modal-tip').modal('hide');
+          submitComplete();
+        });
+
+        $('#btn-confirm-discount').on('click', function () {
+          $('#modal-discount').modal('hide');
+          submitComplete();
+        });
+
+        $('#btn-confirm-exact').on('click', function () {
+          $('#modal-exact').modal('hide');
+          submitComplete();
+        });
+
+        $('#btn-confirm-auth').on('click', function () {
+          const email    = $('#auth-email').val().trim();
+          const password = $('#auth-password').val();
+          if (!email || !password) {
+            alert('Informe o e-mail e a senha do administrador.');
+            return;
+          }
+          $('#modal-auth').modal('hide');
+          submitComplete(email, password);
+        });
+      @endif
     });
   </script>
 @stop

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\AppointmentPayment;
 use App\Models\AppointmentService;
 use App\Models\Client;
 use App\Models\User;
@@ -64,7 +65,12 @@ class ReportController extends Controller
         ];
       });
 
-    return compact('totalRevenue', 'totalAppointments', 'avgTicket', 'byEmployee');
+    $totalTips = Appointment::whereBetween('scheduled_at', [$from, $to])
+      ->where('status', 'completed')
+      ->whereNotNull('tip')
+      ->sum('tip');
+
+    return compact('totalRevenue', 'totalAppointments', 'avgTicket', 'byEmployee', 'totalTips');
   }
 
   private function operationalData(Carbon $from, Carbon $to): array
@@ -129,7 +135,16 @@ class ReportController extends Controller
         ];
       });
 
-    return compact('totalClients', 'newClients', 'inactiveClients', 'topClients');
+    $topTipClient = Client::select('clients.uuid', 'clients.name')
+      ->join('appointments', 'appointments.client_uuid', '=', 'clients.uuid')
+      ->where('appointments.status', 'completed')
+      ->whereNotNull('appointments.tip')
+      ->groupBy('clients.uuid', 'clients.name')
+      ->selectRaw('SUM(appointments.tip) as total_tips, COUNT(appointments.uuid) as tip_count')
+      ->orderByDesc('total_tips')
+      ->first();
+
+    return compact('totalClients', 'newClients', 'inactiveClients', 'topClients', 'topTipClient');
   }
 
   private function promotionsData(Carbon $from, Carbon $to): array

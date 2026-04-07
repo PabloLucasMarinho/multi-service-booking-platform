@@ -158,13 +158,59 @@
         <td class="text-right">R$ {{ number_format($item->final_price, 2, ',', '.') }}</td>
       </tr>
     @endforeach
-    <tr class="total-row">
-      <td colspan="3" class="text-right">Total</td>
-      <td class="text-right">R$ {{ $appointment->formatted_total }}</td>
-    </tr>
+    @if($appointment->closing_discount > 0)
+      <tr>
+        <td colspan="3" class="text-right" style="color:#888;">Subtotal serviços</td>
+        <td class="text-right" style="color:#888;">R$ {{ $appointment->formatted_total }}</td>
+      </tr>
+      <tr>
+        <td colspan="3" class="text-right" style="color:#888;">Desconto no fechamento</td>
+        <td class="text-right" style="color:#c0392b;">— R$ {{ number_format($appointment->closing_discount, 2, ',', '.') }}</td>
+      </tr>
+      <tr class="total-row">
+        <td colspan="3" class="text-right">Total cobrado</td>
+        <td class="text-right">R$ {{ number_format($appointment->total - $appointment->closing_discount, 2, ',', '.') }}</td>
+      </tr>
+    @else
+      <tr class="total-row">
+        <td colspan="3" class="text-right">Total</td>
+        <td class="text-right">R$ {{ $appointment->formatted_total }}</td>
+      </tr>
+    @endif
     </tbody>
   </table>
 </div>
+
+@if($appointment->payments->isNotEmpty())
+  @php
+    $tip         = (float) ($appointment->tip ?? 0);
+    $lastPayment = $appointment->payments->last();
+  @endphp
+  <div class="section">
+    <div class="section-title">Pagamentos</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Forma de pagamento</th>
+          <th class="text-right">Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($appointment->payments as $payment)
+          @php
+            $displayed = ($tip > 0 && $payment->uuid === $lastPayment->uuid)
+              ? (float) $payment->amount - $tip
+              : (float) $payment->amount;
+          @endphp
+          <tr>
+            <td>{{ $payment->payment_method->label() }}</td>
+            <td class="text-right">R$ {{ number_format($displayed, 2, ',', '.') }}</td>
+          </tr>
+        @endforeach
+      </tbody>
+    </table>
+  </div>
+@endif
 
 <div class="footer">
   Este recibo não possui valor fiscal. {{ $company?->name ?? '' }}
