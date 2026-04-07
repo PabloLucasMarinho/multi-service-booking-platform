@@ -64,12 +64,13 @@ relatórios gerenciais.
   mensal
 - **Serviços** — cadastro de serviços com categorias e preços
 - **Clientes** — cadastro e gerenciamento de clientes com histórico de atendimentos
-- **Funcionários** — controle de equipe com hierarquia de permissões (Dono, Administrador, Funcionário)
+- **Funcionários** — controle de equipe com hierarquia de permissões (Proprietário, Administrador, Funcionário)
 - **Promoções** — criação de promoções por categoria ou globais com aplicação automática nos agendamentos
 - **Descontos** — suporte a desconto por promoção e desconto manual (fixo ou percentual) por serviço
-- **Recibo em PDF** — geração de recibo ao concluir um atendimento
+- **Caixa** — fechamento de agendamentos com registro de pagamentos por múltiplas formas (dinheiro, débito, crédito, pix); gorjeta registrada automaticamente quando o cliente paga a mais; desconto no fechamento quando paga a menos, com exigência de autorização de administrador quando solicitado por funcionário
+- **Recibo em PDF** — geração de recibo ao concluir um atendimento com detalhamento das formas de pagamento utilizadas
 - **Dashboard** — visão geral do mês com faturamento, agendamentos do dia e resumo geral
-- **Relatórios** — relatórios financeiros, operacionais, de clientes e de promoções com filtro por período
+- **Relatórios** — relatórios financeiros, operacionais, de clientes e de promoções com filtro por período; inclui total de gorjetas arrecadadas e destaque do cliente que mais gorjeta no histórico
 - **Notificações** — envio automático de e-mail e SMS aos clientes ao cadastrar uma nova promoção, com opção de opt-out
 - **Estabelecimento** — cadastro dos dados do estabelecimento utilizados nos recibos e notificações
 - **Configurações** — personalização de comportamentos específicos do sistema
@@ -157,7 +158,7 @@ Acesse `http://localhost:8000` e faça login com as credenciais do seed:
 
 | Perfil        | E-mail             | Senha    |
 |---------------|--------------------|----------|
-| Dono          | owner@email.com    | Aa123456 |
+| Proprietário  | owner@email.com    | Aa123456 |
 | Administrador | admin@email.com    | Aa123456 |
 | Funcionário   | employee@email.com | Aa123456 |
 
@@ -165,17 +166,17 @@ Acesse `http://localhost:8000` e faça login com as credenciais do seed:
 
 ## Hierarquia de Permissões
 
-| Funcionalidade  | Dono | Admin | Funcionário |
-|-----------------|:----:|:-----:|:-----------:|
-| Dashboard       |  ✓   |   ✓   |      ✓      |
-| Agendamentos    |  ✓   |   ✓   |      ✓      |
-| Clientes        |  ✓   |   ✓   |      ✓      |
-| Funcionários    |  ✓   |   ✓   |      —      |
-| Serviços        |  ✓   |   ✓   |     Ver     |
-| Promoções       |  ✓   |   —   |      —      |
-| Relatórios      |  ✓   |   —   |      —      |
-| Estabelecimento |  ✓   |   —   |      —      |
-| Configurações   |  ✓   |   —   |      —      |
+| Funcionalidade  | Proprietário | Admin | Funcionário |
+|-----------------|:------------:|:-----:|:-----------:|
+| Dashboard       |      ✓       |   ✓   |      ✓      |
+| Agendamentos    |      ✓       |   ✓   |      ✓      |
+| Clientes        |      ✓       |   ✓   |      ✓      |
+| Funcionários    |      ✓       |   ✓   |      —      |
+| Serviços        |      ✓       |   ✓   |     Ver     |
+| Promoções       |      ✓       |   —   |      —      |
+| Relatórios      |      ✓       |   —   |      —      |
+| Estabelecimento |      ✓       |   —   |      —      |
+| Configurações   |      ✓       |   —   |      —      |
 
 ---
 
@@ -198,6 +199,7 @@ Os testes cobrem controllers, policies e regras de validação para todas as ent
 | `clients`              | Clientes do estabelecimento                    |
 | `appointments`         | Agendamentos                                   |
 | `appointment_services` | Serviços vinculados a um agendamento           |
+| `appointment_payments` | Pagamentos registrados no fechamento do caixa  |
 | `services`             | Serviços oferecidos                            |
 | `categories`           | Categorias de serviços                         |
 | `promotions`           | Promoções com desconto fixo ou percentual      |
