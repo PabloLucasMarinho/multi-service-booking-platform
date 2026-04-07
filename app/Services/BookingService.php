@@ -58,7 +58,7 @@ class BookingService
         'manual_discount_value' => $canDiscount ? ($request->manual_discount_value ?: null) : null,
       ]);
 
-      $promotion = Promotion::active()
+      $promotion = Promotion::activeAt($appointment->scheduled_at)
         ->where(function ($query) use ($service) {
           $query->whereHas('categories', function ($q) use ($service) {
             $q->whereIn('categories.uuid', $service->categories->pluck('uuid'));

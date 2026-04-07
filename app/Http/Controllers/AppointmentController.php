@@ -47,7 +47,9 @@ class AppointmentController extends Controller
         $query->whereIn('status', $request->input('statuses'));
       })
       ->with(['client', 'user'])
-      ->orderBy('scheduled_at', 'asc')
+      ->orderByRaw('CASE WHEN scheduled_at >= ? THEN 0 ELSE 1 END ASC', [now()])
+      ->orderByRaw('CASE WHEN scheduled_at >= ? THEN scheduled_at END ASC', [now()])
+      ->orderByRaw('CASE WHEN scheduled_at < ? THEN scheduled_at END DESC', [now()])
       ->get();
 
     return view('appointments.index', compact('appointments'));

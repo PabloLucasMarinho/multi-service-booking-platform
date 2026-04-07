@@ -24,6 +24,9 @@ class AppointmentFactory extends Factory
       'scheduled_at' => $this->faker->dateTimeBetween('-1 month', '+1 month'),
       'notes' => $this->faker->optional()->sentence(),
       'status' => AppointmentStatus::Scheduled,
+      'tip' => null,
+      'closing_discount' => null,
+      'discount_authorized_by' => null,
     ];
   }
 

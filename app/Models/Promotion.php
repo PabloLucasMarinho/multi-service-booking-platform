@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentStatus;
 use App\Enums\DiscountType;
 use App\Models\Traits\FormatsAttributes;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 class Promotion extends Model
 {
@@ -36,6 +38,20 @@ class Promotion extends Model
 
     static::updating(function (Promotion $promotion) {
       $promotion->updated_by = auth()->user()?->uuid ?? null;
+    });
+
+    static::deleting(function (Promotion $promotion) {
+      $maxDiscount = Company::first()?->max_discount_percentage;
+
+      AppointmentService::where('promotion_uuid', $promotion->uuid)
+        ->whereHas('appointment', fn($q) => $q->where('status', AppointmentStatus::Scheduled))
+        ->get()
+        ->each(function (AppointmentService $item) use ($maxDiscount) {
+          $item->promotion_uuid              = null;
+          $item->promotion_amount_snapshot   = null;
+          $item->applyDiscount($maxDiscount);
+          $item->save();
+        });
     });
   }
 
@@ -78,16 +94,19 @@ class Promotion extends Model
 
   public function scopeActive(Builder $query): Builder
   {
-    $now = now();
+    return $this->scopeActiveAt($query, now());
+  }
 
+  public function scopeActiveAt(Builder $query, Carbon $date): Builder
+  {
     return $query
-      ->where(function ($q) use ($now) {
+      ->where(function ($q) use ($date) {
         $q->whereNull('starts_at')
-          ->orWhere('starts_at', '<=', $now);
+          ->orWhere('starts_at', '<=', $date);
       })
-      ->where(function ($q) use ($now) {
+      ->where(function ($q) use ($date) {
         $q->whereNull('ends_at')
-          ->orWhere('ends_at', '>=', $now);
+          ->orWhere('ends_at', '>=', $date);
       });
   }
 

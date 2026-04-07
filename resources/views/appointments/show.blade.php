@@ -199,19 +199,35 @@
 
       {{-- Ações do agendamento --}}
       @if($appointment->appointmentServices->isNotEmpty())
+        @if($appointment->isEditable())
+          @php
+            $copyServices = $appointment->appointmentServices->map(fn($as) =>
+                '• ' . $as->service->name . ' — R$ ' . number_format($as->final_price, 2, ',', '.')
+            )->join("\n");
+            $copyTotal   = 'R$ ' . number_format($appointment->total, 2, ',', '.');
+            $copyMessage = "Olá, {$appointment->client->name}! 😊\n\nSegue a confirmação do seu agendamento:\n\n📅 *Data:* {$appointment->scheduled_at->format('d/m/Y')}\n🕐 *Horário:* {$appointment->scheduled_at->format('H:i')}\n✂️ *Serviços:*\n{$copyServices}\n\n💰 *Total:* {$copyTotal}\n\nTe esperamos! 👋";
+          @endphp
+          <textarea id="copy-message-text" style="display:none;position:absolute;left:-9999px;">{{ $copyMessage }}</textarea>
+        @endif
+
         <div class="card-footer d-flex justify-content-end" style="gap:8px;">
           @if($appointment->status === \App\Enums\AppointmentStatus::Completed)
             <a href="{{ route('appointments.receipt', $appointment) }}" class="btn btn-primary btn-sm">
               <i class="fas fa-file-invoice mr-1"></i> Gerar Recibo
             </a>
           @elseif($appointment->isEditable())
-            <form action="{{ route('appointments.destroy', $appointment) }}" method="POST">
-              @method('DELETE')
-              @csrf
-              <button type="submit" class="btn btn-danger btn-sm">
-                <i class="fas fa-times mr-1"></i> Cancelar agendamento
+            <div class="d-flex justify-content-between w-100" style="gap:8px;">
+              <form action="{{ route('appointments.destroy', $appointment) }}" method="POST">
+                @method('DELETE')
+                @csrf
+                <button type="submit" class="btn btn-danger btn-sm">
+                  <i class="fas fa-times mr-1"></i> Cancelar agendamento
+                </button>
+              </form>
+              <button type="button" id="btn-copy-message" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-copy mr-1"></i> Copiar mensagem
               </button>
-            </form>
+            </div>
           @elseif($appointment->canRestore())
             <form action="{{ route('appointments.restore', $appointment) }}" method="POST">
               @method('PATCH')
@@ -517,6 +533,35 @@
         digitsOptional: false,
         placeholder: '0',
         rightAlign: false,
+      });
+
+      $('#btn-copy-message').on('click', function () {
+        const text = document.getElementById('copy-message-text').value;
+        const $btn = $(this);
+
+        function onCopied() {
+          $btn.html('<i class="fas fa-check mr-1"></i> Copiado!').addClass('btn-success').removeClass('btn-outline-secondary');
+          setTimeout(function () {
+            $btn.html('<i class="fas fa-copy mr-1"></i> Copiar mensagem').addClass('btn-outline-secondary').removeClass('btn-success');
+          }, 2000);
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(onCopied);
+        } else {
+          // Fallback para contextos sem HTTPS (ex: Herd local .test)
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          try {
+            document.execCommand('copy');
+            onCopied();
+          } catch (e) {}
+          document.body.removeChild(ta);
+        }
       });
 
       @if($appointment->isEditable() && !$appointment->scheduled_at->isFuture())

@@ -22,7 +22,7 @@ return new class extends Migration {
       $table->text('notes')->nullable();
       $table->string('status');
       $table->decimal('tip', 10, 2)->nullable();
-      $table->decimal('closing_discount', 10, 2);
+      $table->decimal('closing_discount', 10, 2)->nullable();
       $table->foreignUuid('discount_authorized_by')->nullable()->constrained('users', 'uuid');
       $table->timestamps();
       $table->foreignUuid('created_by')->nullable()

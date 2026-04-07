@@ -7,7 +7,13 @@
       "Read(//c/Users/pablo.marinho/.config/herd/bin/**)",
       "Read(//c/Users/pablo.marinho/.config/herd/bin//**)",
       "Bash(/c/Users/pablo.marinho/.config/herd/bin/php84 artisan:*)",
-      "Bash(\"/c/Users/pablo.marinho/.config/herd/bin/php84/php.exe\" artisan:*)"
+      "Bash(\"/c/Users/pablo.marinho/.config/herd/bin/php84/php.exe\" artisan:*)",
+      "Bash(php artisan:*)",
+      "Bash(php.exe artisan:*)",
+      "Bash(/c/Users/pablo.marinho/AppData/Local/Programs/herd/runtime/php84/php.exe artisan:*)",
+      "Read(//c/Users/pablo.marinho/AppData/Local/Programs//**)",
+      "Read(//mnt/c/Users/pablo.marinho/AppData/Local/**)",
+      "Bash(/c/Users/pablo.marinho/.config/herd/bin/php84/php.exe artisan:*)"
     ]
   }
 }

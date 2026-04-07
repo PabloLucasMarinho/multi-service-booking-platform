@@ -1,9 +1,14 @@
 <?php
 
+use App\Enums\AppointmentStatus;
 use App\Enums\DiscountType;
+use App\Models\Appointment;
+use App\Models\AppointmentService;
 use App\Models\Category;
+use App\Models\Client;
 use App\Models\Promotion;
 use App\Models\Role;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -375,5 +380,237 @@ describe('destroy', function () {
     $this->actingAs($employee)
       ->delete(route('promotions.destroy', $promotion))
       ->assertForbidden();
+  });
+});
+
+// ============================================================
+// APLICAÇÃO POR PERÍODO (data do agendamento)
+// ============================================================
+
+describe('aplicação por período', function () {
+  it('promoção vigente na data do agendamento é aplicada ao serviço', function () {
+    $owner  = makePromotionUser('owner');
+    $client = Client::factory()->create(['user_uuid' => $owner->uuid]);
+
+    // Agendamento para daqui a 5 dias; promoção cobre esse período
+    $scheduledAt = now()->addDays(5);
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => $scheduledAt,
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    makePromotion([
+      'value'     => 20,
+      'starts_at' => now()->subDay(),
+      'ends_at'   => now()->addDays(10),
+    ]);
+
+    $service = Service::factory()->create(['price' => 100]);
+
+    $this->actingAs($owner)
+      ->post(route('appointment-services.store', $appointment), [
+        'service_uuid' => (string) $service->uuid,
+      ]);
+
+    $item = AppointmentService::where('appointment_uuid', $appointment->uuid)->first();
+    expect($item->promotion_uuid)->not->toBeNull();
+    expect((float) $item->final_price)->toBe(80.0);
+  });
+
+  it('promoção encerrada antes da data do agendamento não é aplicada', function () {
+    $owner  = makePromotionUser('owner');
+    $client = Client::factory()->create(['user_uuid' => $owner->uuid]);
+
+    // Promoção termina hoje; agendamento é amanhã
+    makePromotion([
+      'starts_at' => now()->subDay(),
+      'ends_at'   => now()->endOfDay(),
+    ]);
+
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => now()->addDay(),
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $service = Service::factory()->create(['price' => 100]);
+
+    $this->actingAs($owner)
+      ->post(route('appointment-services.store', $appointment), [
+        'service_uuid' => (string) $service->uuid,
+      ]);
+
+    $item = AppointmentService::where('appointment_uuid', $appointment->uuid)->first();
+    expect($item->promotion_uuid)->toBeNull();
+    expect((float) $item->final_price)->toBe(100.0);
+  });
+
+  it('promoção futura é aplicada quando agendamento cai dentro do período dela', function () {
+    $owner  = makePromotionUser('owner');
+    $client = Client::factory()->create(['user_uuid' => $owner->uuid]);
+
+    // Promoção começa daqui a 7 dias (inativa hoje); agendamento é em 10 dias
+    makePromotion([
+      'value'     => 10,
+      'starts_at' => now()->addDays(7),
+      'ends_at'   => now()->addDays(14),
+    ]);
+
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => now()->addDays(10),
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $service = Service::factory()->create(['price' => 100]);
+
+    $this->actingAs($owner)
+      ->post(route('appointment-services.store', $appointment), [
+        'service_uuid' => (string) $service->uuid,
+      ]);
+
+    $item = AppointmentService::where('appointment_uuid', $appointment->uuid)->first();
+    expect($item->promotion_uuid)->not->toBeNull();
+    expect((float) $item->final_price)->toBe(90.0);
+  });
+
+  it('promoção futura não é aplicada quando agendamento é antes do início dela', function () {
+    $owner  = makePromotionUser('owner');
+    $client = Client::factory()->create(['user_uuid' => $owner->uuid]);
+
+    // Promoção começa em 10 dias; agendamento é em 3 dias
+    makePromotion([
+      'starts_at' => now()->addDays(10),
+      'ends_at'   => now()->addDays(20),
+    ]);
+
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => now()->addDays(3),
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $service = Service::factory()->create(['price' => 100]);
+
+    $this->actingAs($owner)
+      ->post(route('appointment-services.store', $appointment), [
+        'service_uuid' => (string) $service->uuid,
+      ]);
+
+    $item = AppointmentService::where('appointment_uuid', $appointment->uuid)->first();
+    expect($item->promotion_uuid)->toBeNull();
+    expect((float) $item->final_price)->toBe(100.0);
+  });
+});
+
+// ============================================================
+// DELEÇÃO EM CASCATA
+// ============================================================
+
+describe('deleção em cascata', function () {
+  it('deletar promoção remove-a de agendamentos com status scheduled', function () {
+    $owner     = makePromotionUser('owner');
+    $promotion = makePromotion(['value' => 20]);
+    $client    = Client::factory()->create(['user_uuid' => $owner->uuid]);
+    $service   = Service::factory()->create(['price' => 100]);
+
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => now()->addDay(),
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $item = new AppointmentService([
+      'appointment_uuid'        => $appointment->uuid,
+      'service_uuid'            => $service->uuid,
+      'original_price'          => 100,
+      'promotion_uuid'          => $promotion->uuid,
+      'promotion_amount_snapshot' => 20,
+      'manual_discount_type'    => null,
+      'manual_discount_value'   => null,
+    ]);
+    $item->applyDiscount(null);
+    $item->save();
+
+    expect((float) $item->final_price)->toBe(80.0);
+
+    $this->actingAs($owner)
+      ->delete(route('promotions.destroy', $promotion));
+
+    $item->refresh();
+    expect($item->promotion_uuid)->toBeNull();
+    expect($item->promotion_amount_snapshot)->toBeNull();
+  });
+
+  it('deletar promoção recalcula o preço do serviço sem o desconto', function () {
+    $owner     = makePromotionUser('owner');
+    $promotion = makePromotion(['value' => 30]);
+    $client    = Client::factory()->create(['user_uuid' => $owner->uuid]);
+    $service   = Service::factory()->create(['price' => 100]);
+
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => now()->addDay(),
+      'status'       => AppointmentStatus::Scheduled,
+    ]);
+
+    $item = new AppointmentService([
+      'appointment_uuid'          => $appointment->uuid,
+      'service_uuid'              => $service->uuid,
+      'original_price'            => 100,
+      'promotion_uuid'            => $promotion->uuid,
+      'promotion_amount_snapshot' => 30,
+      'manual_discount_type'      => null,
+      'manual_discount_value'     => null,
+    ]);
+    $item->applyDiscount(null);
+    $item->save();
+
+    $this->actingAs($owner)
+      ->delete(route('promotions.destroy', $promotion));
+
+    $item->refresh();
+    expect((float) $item->final_price)->toBe(100.0);
+  });
+
+  it('deletar promoção não afeta agendamentos já concluídos', function () {
+    $owner     = makePromotionUser('owner');
+    $promotion = makePromotion(['value' => 25]);
+    $client    = Client::factory()->create(['user_uuid' => $owner->uuid]);
+    $service   = Service::factory()->create(['price' => 100]);
+
+    $appointment = Appointment::factory()->create([
+      'user_uuid'    => $owner->uuid,
+      'client_uuid'  => $client->uuid,
+      'scheduled_at' => now()->subDay(),
+      'status'       => AppointmentStatus::Completed,
+    ]);
+
+    $item = new AppointmentService([
+      'appointment_uuid'          => $appointment->uuid,
+      'service_uuid'              => $service->uuid,
+      'original_price'            => 100,
+      'promotion_uuid'            => $promotion->uuid,
+      'promotion_amount_snapshot' => 25,
+      'manual_discount_type'      => null,
+      'manual_discount_value'     => null,
+    ]);
+    $item->applyDiscount(null);
+    $item->save();
+
+    $this->actingAs($owner)
+      ->delete(route('promotions.destroy', $promotion));
+
+    $item->refresh();
+    expect($item->promotion_uuid)->toBe($promotion->uuid);
+    expect((float) $item->promotion_amount_snapshot)->toBe(25.0);
+    expect((float) $item->final_price)->toBe(75.0);
   });
 });
