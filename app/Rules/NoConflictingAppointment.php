@@ -17,7 +17,11 @@ class NoConflictingAppointment implements ValidationRule
 
   public function validate(string $attribute, mixed $value, Closure $fail): void
   {
-    $scheduledAt = Carbon::parse($value)->setSecond(0)->setMicrosecond(0);
+    try {
+      $scheduledAt = Carbon::parse($value)->setSecond(0)->setMicrosecond(0);
+    } catch (\Throwable) {
+      return;
+    }
 
     $query = Appointment::where('scheduled_at', $scheduledAt)
       ->where('status', AppointmentStatus::Scheduled);

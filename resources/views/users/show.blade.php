@@ -44,16 +44,20 @@
       </div>
       <div class="card-body p-0">
         <div class="row no-gutters">
-          <div class="col-md-4 p-3 border-right">
+          <div class="col-md-3 p-3 border-right">
+            <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">CPF</p>
+            <strong>{{ $user->document_formatted }}</strong>
+          </div>
+          <div class="col-md-3 p-3 border-right">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Data de
               Nascimento</p>
             <strong>{{ $user->date_of_birth_formatted }}</strong>
           </div>
-          <div class="col-md-4 p-3 border-right">
+          <div class="col-md-3 p-3 border-right">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">E-mail</p>
             <strong>{{ $user->email }}</strong>
           </div>
-          <div class="col-md-4 p-3">
+          <div class="col-md-3 p-3">
             <p class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">
               Telefone</p>
             <strong>{{ $user->phone_formatted }}</strong>

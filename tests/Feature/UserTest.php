@@ -566,3 +566,78 @@ describe('restore', function () {
       ->assertForbidden();
   });
 });
+
+// ============================================================
+// FLUXO DE RECADASTRO APÓS DETECÇÃO DE USUÁRIO SOFT DELETED
+// ============================================================
+
+describe('fluxo de recadastro com usuário soft deleted', function () {
+  it('após restaurar, usuário volta a estar ativo sem criar novo registro', function () {
+    $owner = makeUser('owner');
+    $employee = makeUser('employee');
+    $employee->delete();
+
+    // Detecta o usuário deletado ao tentar recadastrar com mesmo email
+    $this->actingAs($owner)
+      ->post(route('users.store'), validUserData(['email' => $employee->email]))
+      ->assertJson(['deleted_user' => true, 'uuid' => $employee->uuid]);
+
+    // Restaura o usuário
+    $this->actingAs($owner)
+      ->put(route('users.restore', $employee->uuid))
+      ->assertJson(['success' => true]);
+
+    // Usuário está ativo novamente e nenhum novo registro foi criado
+    $this->assertNotSoftDeleted('users', ['uuid' => $employee->uuid]);
+    $this->assertDatabaseCount('users', 2); // owner + employee restaurado
+  });
+
+  it('após anonimizar, email é nulificado e novo cadastro com mesmo email é aceito', function () {
+    $owner = makeUser('owner');
+    $employee = makeUser('employee');
+    $deletedEmail = $employee->email;
+    $employee->delete();
+
+    // Detecta o usuário deletado
+    $this->actingAs($owner)
+      ->post(route('users.store'), validUserData(['email' => $deletedEmail]))
+      ->assertJson(['deleted_user' => true]);
+
+    // Anonimiza (nulifica email do registro deletado)
+    $this->actingAs($owner)
+      ->delete(route('users.anonymize', $employee->uuid))
+      ->assertJson(['success' => true]);
+
+    $this->assertDatabaseHas('users', ['uuid' => $employee->uuid, 'email' => null]);
+
+    // Recadastra com mesmo email e CPF diferente — deve criar novo usuário sem detecção
+    $this->actingAs($owner)
+      ->post(route('users.store'), validUserData([
+        'email' => $deletedEmail,
+        'document' => generateUniqueCpf(),
+      ]))
+      ->assertRedirect(route('users.index'));
+
+    $this->assertDatabaseHas('users', ['email' => $deletedEmail, 'deleted_at' => null]);
+  });
+
+  it('após anonimizar, CPF do registro deletado ainda bloqueia recadastro com mesmo CPF', function () {
+    $owner = makeUser('owner');
+    $employee = makeUser('employee');
+    $deletedDocument = $employee->document;
+    $employee->delete();
+
+    // Anonimiza (só nulifica email, CPF permanece)
+    $this->actingAs($owner)
+      ->delete(route('users.anonymize', $employee->uuid))
+      ->assertJson(['success' => true]);
+
+    // Tenta recadastrar com email diferente mas mesmo CPF — ainda detecta usuário deletado
+    $this->actingAs($owner)
+      ->post(route('users.store'), validUserData([
+        'email' => 'novo@email.com',
+        'document' => $deletedDocument,
+      ]))
+      ->assertJson(['deleted_user' => true]);
+  });
+});

@@ -13,7 +13,14 @@
       "Bash(/c/Users/pablo.marinho/AppData/Local/Programs/herd/runtime/php84/php.exe artisan:*)",
       "Read(//c/Users/pablo.marinho/AppData/Local/Programs//**)",
       "Read(//mnt/c/Users/pablo.marinho/AppData/Local/**)",
-      "Bash(/c/Users/pablo.marinho/.config/herd/bin/php84/php.exe artisan:*)"
+      "Bash(/c/Users/pablo.marinho/.config/herd/bin/php84/php.exe artisan:*)",
+      "Bash(./vendor/bin/pest tests/Feature/UserTest.php --filter=\"fluxo de recadastro\")",
+      "Bash(php84 ./vendor/bin/pest tests/Feature/UserTest.php --filter=\"fluxo de recadastro\")",
+      "Bash(ls /usr/bin/php*)",
+      "Bash(ls /usr/local/bin/php*)",
+      "Bash(\"/c/Users/pablo.marinho/.config/herd/bin/php84.bat\" ./vendor/bin/pest tests/Feature/UserTest.php --filter=\"fluxo de recadastro\")",
+      "Bash(\"/c/Users/pablo.marinho/.config/herd/bin/php84.bat\" ./vendor/bin/pest tests/Feature/UserTest.php)",
+      "Bash(\"/c/Users/pablo.marinho/.config/herd/bin/php84.bat\" ./vendor/bin/pest tests/Feature/AppointmentTest.php)"
     ]
   }
 }
